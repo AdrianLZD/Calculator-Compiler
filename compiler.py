@@ -65,21 +65,21 @@ def p_statement_declare_int(p):
     if type(p[3]) == float:
         print("Can not assign floats to integers")
     else:
-        child = Node(p[2], 'INT', [])
-        n = Node(p[3], '=', [ child, p[3] ])
-        abstractTree.append(n)
-        # names[p[2]] = { "type": "INT", "value": p[3]}
+        # child = Node(p[2], 'INT', [])
+        # n = Node(p[3], '=', [ child, p[3] ])
+        # abstractTree.append(n)
+        names[p[2]] = { "type": "INT", "value": p[3]}
 
 def p_is_assing(p):
     '''is_assing : "=" expression 
                 | '''
-    # p[0] = 0
-    p[0] = Node(0, 'INT', [])
+    p[0] = 0
+    # p[0] = Node(0, 'INT', [])
     if len(p) > 2:
-        p[0].type = p[2].type
-        p[0].val = p[2].val
-        p[0].children = [p[2]]
-        # p[0] = p[2]
+        # p[0].type = p[2].type
+        # p[0].val = p[2].val
+        # p[0].children = [p[2]]
+        p[0] = p[2]
 
 
 def p_statement_declare_float(p):
@@ -125,8 +125,8 @@ def p_expression_group(p):
 
 def p_expression_inumber(p):
     "expression : INUMBER"
-    # p[0] = p[1]
-    p[0] = Node(p[1], 'INT', [])
+    p[0] = p[1]
+    # p[0] = Node(p[1], 'INT', [])
 
 
 def p_expression_fnumber(p):
@@ -153,11 +153,18 @@ def p_error(p):
 
 parser = yacc.yacc()
 
-while True:
-    try:
-        s = input('calc > ')
-    except EOFError:
-        break
-    if not s:
-        continue
-    yacc.parse(s)
+FILE_INPUT = 'integers.txt'
+if FILE_INPUT != '':
+    with open('input/' + FILE_INPUT) as file:
+        for line in file:
+            print(line.replace('\n', ''))
+            yacc.parse(line)
+else:
+    while True:
+        try:
+            s = input('calc > ')
+        except EOFError:
+            break
+        if not s:
+            continue
+        yacc.parse(s)
