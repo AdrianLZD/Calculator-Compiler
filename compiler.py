@@ -1,5 +1,6 @@
 import ply.yacc as yacc
 import ply.lex as lex
+import sys
 from Node import Node
 
 
@@ -153,9 +154,8 @@ def p_error(p):
 
 parser = yacc.yacc()
 
-FILE_INPUT = 'integers.txt'
-if FILE_INPUT != '':
-    with open('input/' + FILE_INPUT) as file:
+if len(sys.argv) > 1:
+    with open('input/' + sys.argv[1]) as file:
         for line in file:
             print(line.replace('\n', ''))
             yacc.parse(line)
