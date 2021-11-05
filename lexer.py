@@ -22,11 +22,11 @@ keywords = {
 tokens = list(keywords.values()) + [
     'INUMBER',
     'FNUMBER',
-    'ID',
     'EQUALS',
     'NOTEQUALS',
     'GTEQUALS',
-    'LSEQUALS'
+    'LSEQUALS',
+    'ID',
     'NEWLINE'
 ]
 
