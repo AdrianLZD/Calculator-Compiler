@@ -63,6 +63,7 @@ def p_simstmt_declaration(p):
 def p_simstmt_assign(p):
     '''
     simstmt : INT ID '=' numexpr
+    simstmt : FLOAT ID '=' numexpr
     '''
     p[0] = p[4]
 
