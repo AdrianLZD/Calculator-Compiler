@@ -35,4 +35,8 @@ arit -> +
       | /
       | ^
 
+wordexpr -> WORD
+          | wordexpr + wordexpr
+          | ID
+
 printstmt -> ( expr )

@@ -61,6 +61,8 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_input(['string a = \'=+-*/^><(){};\';']), '=+-*/^><(){};')
         self.assertEqual(plyparser.test_input(['string a = \'\\\'\';']), "'")
         self.assertEqual(plyparser.test_input(['string a = \'\\\"\';']), '"')
+        self.assertEqual(plyparser.test_input(['string a = \'\\\"\' + \'\\\"\';']), '""')
+        self.assertEqual(plyparser.test_input(['string a = \'\\\'\' + \'\\\"\';']), "'\"")
         '"'
         sys.stdout.close()
         sys.stdout = sys.__stdout__

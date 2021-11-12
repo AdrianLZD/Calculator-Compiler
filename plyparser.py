@@ -116,7 +116,7 @@ def p_wordexpr_concats(p):
              | wordexpr '+' wordexpr
     '''
     if len(p) == 4:
-        p[0] = p[2] if p[1] == '"' else str(p[1])[1:-1] + str(p[3])[1:-1]
+        p[0] =  str(p[1]) + str(p[3])
     else:
         p[0] = p[1] #TODO Set value of id
 
