@@ -1,0 +1,38 @@
+script -> block
+
+block -> stmt block
+       | stmt
+
+stmt -> simstmt ;
+      | flowctrl
+      | printstmt ;
+    
+simstmt -> INT ID
+         | INT ID = numexpr
+         | FLOAT ID
+         | FLOAT ID = numexpr
+         | STRING ID
+         | STRING ID = wordexpr
+         | BOOLEAN ID
+         | BOOLEAN ID = boolexpr
+         | ID = expr
+
+expr -> numexpr
+      | wordexpr
+      | boolexpr
+
+
+numexpr -> number
+         | numexpr arit numexpr
+
+number -> INT
+        | FLOAT
+        | ID
+
+arit -> +
+      | -
+      | *
+      | /
+      | ^
+
+printstmt -> ( expr )
