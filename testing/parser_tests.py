@@ -61,9 +61,27 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_input(['string a = \'=+-*/^><(){};\';']), '=+-*/^><(){};')
         self.assertEqual(plyparser.test_input(['string a = \'\\\'\';']), "'")
         self.assertEqual(plyparser.test_input(['string a = \'\\\"\';']), '"')
+        #Concatenation
         self.assertEqual(plyparser.test_input(['string a = \'\\\"\' + \'\\\"\';']), '""')
         self.assertEqual(plyparser.test_input(['string a = \'\\\'\' + \'\\\"\';']), "'\"")
-        '"'
+        sys.stdout.close()
+        sys.stdout = sys.__stdout__
+
+    def test_booleans(self):
+        sys.stdout = open(self.log_file, 'a')
+        print('\n--------TESTING STRINGS--------')
+        self.assertEqual(plyparser.test_input(['boolean a;']), 'a')
+        self.assertEqual(plyparser.test_input(['boolean b = 3;']), 'true')
+        self.assertEqual(plyparser.test_input(['boolean d = 0.0;']), 'false')
+        self.assertEqual(plyparser.test_input(['boolean c']), None)
+        self.assertEqual(plyparser.test_input(['boolean $$$;']), None)
+        self.assertEqual(plyparser.test_input(['boolean _a;']), '_a')
+        self.assertEqual(plyparser.test_input(['boolean a = "123124124";']), None)
+        self.assertEqual(plyparser.test_input(['boolean c = 0;']), 'false')
+        self.assertEqual(plyparser.test_input(['boolean oas = true;']), 'true')
+        self.assertEqual(plyparser.test_input(['boolean oas = false;']), 'false')
+        self.assertEqual(plyparser.test_input(['boolean oas = true']), None)
+        self.assertEqual(plyparser.test_input(['boolean oas = false']), None)
         sys.stdout.close()
         sys.stdout = sys.__stdout__
 

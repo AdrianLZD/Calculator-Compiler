@@ -65,6 +65,7 @@ def p_simstmt_assign(p):
     simstmt : INT ID '=' numexpr
     simstmt : FLOAT ID '=' numexpr
     simstmt : STRING ID '=' wordexpr
+    simstmt : BOOLEAN ID '=' boolexpr
     '''
     p[0] = p[4]
 
@@ -119,6 +120,21 @@ def p_wordexpr_concats(p):
         p[0] =  str(p[1]) + str(p[3])
     else:
         p[0] = p[1] #TODO Set value of id
+
+def p_boolexpr_normal(p):
+    '''
+    boolexpr : TRUE
+             | FALSE
+    '''
+    p[0] = p[1]
+
+
+def p_boolexpr_types(p):
+    '''
+    boolexpr : numexpr
+             | ID
+    '''
+    p[0] = 'true' if float(p[1]) > 0 else 'false' #TODO Fix ID declaration
 
 def p_error(p):
     if p:

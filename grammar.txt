@@ -39,4 +39,9 @@ wordexpr -> WORD
           | wordexpr + wordexpr
           | ID
 
+boolexpr -> TRUE
+          | FALSE
+          | numexpr
+          | ID
+          
 printstmt -> ( expr )
