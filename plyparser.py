@@ -64,6 +64,7 @@ def p_simstmt_assign(p):
     '''
     simstmt : INT ID '=' numexpr
     simstmt : FLOAT ID '=' numexpr
+    simstmt : STRING ID '=' wordexpr
     '''
     p[0] = p[4]
 
@@ -83,7 +84,7 @@ def p_number(p):
            | FNUMBER
            | ID 
     '''
-    p[0] = p[1]
+    p[0] = p[1] #TODO set value of ID
 
 def p_arit(p):
     '''
@@ -95,6 +96,29 @@ def p_arit(p):
     '''
     p[0] = p[1]
 
+def p_wordexpr_word(p):
+    '''
+    wordexpr : WORD
+    '''
+    word = p[1][1:-1]
+    length = len(word)
+    i = 0
+    while i < length:
+        if word[i] == '\\':
+            word = word[0: i:] + word[i+1: :]
+            i += 1
+        i += 1
+    p[0] = word
+
+def p_wordexpr_concats(p):
+    '''
+    wordexpr : ID
+             | wordexpr '+' wordexpr
+    '''
+    if len(p) == 4:
+        p[0] = p[2] if p[1] == '"' else str(p[1])[1:-1] + str(p[3])[1:-1]
+    else:
+        p[0] = p[1] #TODO Set value of id
 
 def p_error(p):
     if p:
