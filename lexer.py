@@ -22,6 +22,7 @@ keywords = {
 tokens = list(keywords.values()) + [
     'INUMBER',
     'FNUMBER',
+    'WORD',
     'EQUALS',
     'NOTEQUALS',
     'GTEQUALS',
@@ -38,6 +39,7 @@ t_EQUALS = r'=='
 t_NOTEQUALS = r'!='
 t_GTEQUALS = r'>='
 t_LSEQUALS = r'<='
+t_WORD = r'\"([^\\\n]|(\\.))*?\"|\'([^\\\n]|(\\.))*?\''
 
 def t_ID(t):
     r'[a-zA-Z_][\w]*'
