@@ -13,6 +13,38 @@ ops = {
     '^': operator.xor,
 }
 
+def eqcomp(a, b):
+    return a == b
+
+def nqcomp(a, b):
+    return a != b
+
+def andcomp(a, b):
+    a = str_to_bool(a)
+    b = str_to_bool(b)
+    return a and b
+
+def orcomp(a, b):
+    a = str_to_bool(a)
+    b = str_to_bool(b)
+    return a or b
+
+def str_to_bool(a):
+    if type(a) == bool: return a
+    return a != ''
+    
+comps = {
+    '==': eqcomp,
+    '!=': nqcomp,
+    'and': andcomp,
+    'or': orcomp,
+    '>': operator.gt,
+    '>=': operator.ge,
+    '<': operator.lt,
+    '<=': operator.le
+}
+
+
 class Node:
     def __init__(self, type, children=[], parent=None, pType=None):
         self.type = type
@@ -79,13 +111,25 @@ def p_numexpr(p):
     else:
         p[0] = p[1]
 
-def p_number(p):
+def p_number_id(p):
     '''
-    number : INUMBER
-           | FNUMBER
-           | ID 
+    number : ID 
     '''
     p[0] = p[1] #TODO set value of ID
+
+
+def p_number_int(p):
+    '''
+    number : INUMBER 
+    '''
+    p[0] = int(p[1])
+
+
+def p_number_float(p):
+    '''
+    number : FNUMBER 
+    '''
+    p[0] = float(p[1])
 
 def p_arit(p):
     '''
@@ -126,15 +170,84 @@ def p_boolexpr_normal(p):
     boolexpr : TRUE
              | FALSE
     '''
-    p[0] = p[1]
+    p[0] = eval(p[1].title())
 
+def p_boolexpr_compar(p):
+    '''
+    boolexpr : compar
+    '''
+    p[0] = p[1]
 
 def p_boolexpr_types(p):
     '''
-    boolexpr : numexpr
-             | ID
+    boolexpr : ID
     '''
-    p[0] = 'true' if float(p[1]) > 0 else 'false' #TODO Fix ID declaration
+    p[0] = True if float(p[1]) > 0 else False #TODO Fix ID declaration
+
+
+def p_compar(p):
+    '''
+    compar : '(' comparexpr ')'
+           | '(' boolexpr ')'
+    '''
+    p[0] = p[2]
+
+def p_comparexpr(p):
+    '''
+    comparexpr : numexpr compbasic boolexpr
+               | boolexpr compbasic numexpr
+               | wordexpr compmin wordexpr
+               | numexpr compall numexpr
+               | comparexpr compall comparexpr
+    '''
+    for i in p:
+        print(i)
+
+    p[0] = comps[p[2]](p[1], p[3])
+
+def p_comparexpr_bool_bool(p):
+    '''
+    comparexpr : boolexpr compbasic boolexpr
+    '''
+    p[0] = comps[p[2]](str_to_bool(p[1]), str_to_bool(p[3]))
+
+def p_comparexpr_word_bool(p):
+    '''
+    comparexpr : wordexpr compmin boolexpr
+    '''
+    p[0] = comps[p[2]](p[1], str_to_bool(p[3]))
+
+def p_comparexpr_bool_word(p):
+    '''
+    comparexpr : boolexpr compmin wordexpr
+    '''
+    p[0] = comps[p[2]](str_to_bool(p[1]), p[3])
+
+def p_compall(p):
+    '''
+    compall : GTEQUALS
+            | LSEQUALS
+            | '>'
+            | '<'
+            | compbasic
+    '''
+    p[0] = p[1]
+
+def p_compbasic(p):
+    '''
+    compbasic : AND
+              | OR
+              | compmin
+    '''
+    p[0] = p[1]
+
+
+def p_compmin(p):
+    '''
+    compmin : EQUALS
+            | NOTEQUALS
+    '''
+    p[0] = p[1]
 
 def p_error(p):
     if p:
@@ -156,7 +269,7 @@ if __name__ == '__main__':
         print(yacc.parse(s))
 
 
-def test_input(args):
+def test_tokens(args):
     if args:
         print('Test: ' + str(args))
         if len(args) > 1:

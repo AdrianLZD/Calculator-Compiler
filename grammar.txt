@@ -6,6 +6,7 @@ block -> stmt block
 stmt -> simstmt ;
       | flowctrl
       | printstmt ;
+      | NEWLINE
     
 simstmt -> INT ID
          | INT ID = numexpr
@@ -15,18 +16,13 @@ simstmt -> INT ID
          | STRING ID = wordexpr
          | BOOLEAN ID
          | BOOLEAN ID = boolexpr
-         | ID = expr
-
-expr -> numexpr
-      | wordexpr
-      | boolexpr
-
+         | ID = expr                      -Implementation missing
 
 numexpr -> number
          | numexpr arit numexpr
 
-number -> INT
-        | FLOAT
+number -> INUMBER
+        | FNUMBER
         | ID
 
 arit -> +
@@ -41,7 +37,36 @@ wordexpr -> WORD
 
 boolexpr -> TRUE
           | FALSE
-          | numexpr
           | ID
+          | compar
+
+compar -> ( comparexpr )
+        | ( boolexpr )
+
+comparexpr -> numexpr compbasic boolexpr
+            | boolexpr compbasic numexpr
+            | wordexpr compmin wordexpr
+            | numexpr compall numexpr
+            | comparexpr compall comparexpr
+            | boolexpr compbasic boolexpr
+            | wordexpr compmin boolexpr
+            | boolexpr compmin wordexpr
+
+compall -> GTEQUALS
+         | LSEQUALS
+         | '>'
+         | '<'
+         | compbasic
+
+compbasic -> AND
+           | OR
+           | compmin
+
+compmin -> EQUALS
+         | NOTEQUALS
           
-printstmt -> ( expr )
+flowctrl -> if compar { block }           -Implementation missing       
+          | while compar { block }        -Implementation missing
+          | for ( ; ; ){ block }          -Implementation missing
+
+printstmt -> ( expr )                     -Implementation missing
