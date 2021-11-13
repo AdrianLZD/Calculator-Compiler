@@ -9,17 +9,21 @@ stmt -> simstmt ;
       | NEWLINE
     
 simstmt -> INT ID
-         | INT ID = numexpr
+         | INT ID = numstmt
          | FLOAT ID
-         | FLOAT ID = numexpr
+         | FLOAT ID = numstmt
          | STRING ID
          | STRING ID = wordexpr
          | BOOLEAN ID
          | BOOLEAN ID = boolexpr
          | ID = expr                      -Implementation missing
 
+numstmt -> numexpr 
+         | ( numexpr )
+
 numexpr -> number
          | numexpr arit numexpr
+         | numstmt arit numexpr
 
 number -> INUMBER
         | FNUMBER
@@ -43,10 +47,10 @@ boolexpr -> TRUE
 compar -> ( comparexpr )
         | ( boolexpr )
 
-comparexpr -> numexpr compbasic boolexpr
-            | boolexpr compbasic numexpr
+comparexpr -> numstmt compbasic boolexpr
+            | boolexpr compbasic numstmt
             | wordexpr compmin wordexpr
-            | numexpr compall numexpr
+            | numstmt compall numstmt
             | comparexpr compall comparexpr
             | boolexpr compbasic boolexpr
             | wordexpr compmin boolexpr

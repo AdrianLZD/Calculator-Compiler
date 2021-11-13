@@ -4,6 +4,12 @@ import operator
 
 tokens = lexer.tokens
 
+precedence = (
+    ('left', '+', '-'),
+    ('left', '*', '/'),
+    ('left', '^'),
+    ('right', 'UMINUS')
+)
 
 ops = {
     '+': operator.add,
@@ -94,22 +100,43 @@ def p_simstmt_declaration(p):
 
 def p_simstmt_assign(p):
     '''
-    simstmt : INT ID '=' numexpr
-    simstmt : FLOAT ID '=' numexpr
+    simstmt : INT ID '=' numstmt
+    simstmt : FLOAT ID '=' numstmt
     simstmt : STRING ID '=' wordexpr
     simstmt : BOOLEAN ID '=' boolexpr
     '''
     p[0] = p[4]
 
+def p_numstmt(p):
+    '''
+    numstmt : numexpr
+    '''
+    p[0] = p[1]
+
+def p_numstmt_block(p):
+    '''
+    numstmt : '(' numexpr ')'
+    '''
+    p[0] = p[2]
+
 def p_numexpr(p):
     '''
     numexpr : number
-            | numexpr arit numexpr
     '''
-    if len(p) > 2:
-        p[0] = ops[p[2]](p[1], p[3])
-    else:
-        p[0] = p[1]
+    p[0] = p[1]
+
+def p_numexpr_arit(p):
+    '''
+    numexpr : numexpr arit numexpr
+            | numstmt arit numexpr
+            | numexpr arit numstmt
+            | numstmt arit numstmt
+    '''
+    p[0] = ops[p[2]](p[1], p[3])
+
+def p_numexpr_uminus(p):
+    "numexpr : '-' numexpr %prec UMINUS"
+    p[0] = -p[2]
 
 def p_number_id(p):
     '''
@@ -172,32 +199,32 @@ def p_boolexpr_normal(p):
     '''
     p[0] = eval(p[1].title())
 
-def p_boolexpr_compar(p):
-    '''
-    boolexpr : compar
-    '''
-    p[0] = p[1]
 
 def p_boolexpr_types(p):
     '''
     boolexpr : ID
     '''
-    p[0] = True if float(p[1]) > 0 else False #TODO Fix ID declaration
+    p[0] = True if float(p[1]) > 0 else False  # TODO Fix ID declaration
 
-
-def p_compar(p):
+def p_boolexpr_compar(p):
     '''
-    compar : '(' comparexpr ')'
-           | '(' boolexpr ')'
+    boolexpr : '(' compar ')'
     '''
     p[0] = p[2]
 
+def p_compar(p):
+    '''
+    compar : comparexpr
+           | boolexpr
+    '''
+    p[0] = p[1]
+
 def p_comparexpr(p):
     '''
-    comparexpr : numexpr compbasic boolexpr
-               | boolexpr compbasic numexpr
+    comparexpr : numstmt compbasic boolexpr
+               | boolexpr compbasic numstmt
                | wordexpr compmin wordexpr
-               | numexpr compall numexpr
+               | numstmt compall numstmt
                | comparexpr compall comparexpr
     '''
     for i in p:
@@ -252,7 +279,7 @@ def p_compmin(p):
 def p_error(p):
     if p:
         print(p)
-        print("Syntax error at line '%s' character '%s'" %(p.lexpos, p.lineno))
+        print("Syntax error at line '%s' character '%s'" %(p.lineno, p.lexpos))
     else:
         print("Syntax error at EOF")
 

@@ -8,14 +8,8 @@ import datetime
 
 
 class TestDeclarations(unittest.TestCase):
-    log_file = 'parser_tests.log'
-    # Cleans log file before appending testing logs
-    with open(log_file, 'w') as f:
-        f.write('Last time tested:\n' + str(datetime.datetime.now()) + '\n')
-
 
     def test_integers_declaration(self):
-        sys.stdout = open(self.log_file, 'a')
         print('\n--------INTEGERS DECLARATION--------')
         self.assertEqual(plyparser.test_tokens(['int a;']), 'a')
         self.assertEqual(plyparser.test_tokens(['int b = 3;']) , 3)
@@ -24,12 +18,9 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens(['int $$$;']), None)
         self.assertEqual(plyparser.test_tokens(['int _a;']), '_a')
         self.assertEqual(plyparser.test_tokens(['int a = 123124124']) , None)
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
 
 
     def test_floats_declaration(self):
-        sys.stdout = open(self.log_file, 'a')
         print('\n--------FLOATS DECLARATION--------')
         self.assertEqual(plyparser.test_tokens(['float a;']), 'a')
         self.assertEqual(plyparser.test_tokens(['float b = 3;']), 3.0)
@@ -38,12 +29,9 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens(['float $$$;']), None)
         self.assertEqual(plyparser.test_tokens(['float _a;']), '_a')
         self.assertEqual(plyparser.test_tokens(['float a = 123124124']), None)
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
 
 
     def test_strings_declaration(self):
-        sys.stdout = open(self.log_file, 'a')
         print('\n--------STRINGS DECLARATION--------')
         self.assertEqual(plyparser.test_tokens(['string a;']), 'a')
         self.assertEqual(plyparser.test_tokens(['string b = 3;']), None)
@@ -68,16 +56,12 @@ class TestDeclarations(unittest.TestCase):
         
     
     def test_strings_concatenation(self):
-        sys.stdout = open(self.log_file, 'a')
         print('\n--------STRINGS CONCATENATION--------')
         self.assertEqual(plyparser.test_tokens(['string a = \'\\\"\' + \'\\\"\';']), '""')
         self.assertEqual(plyparser.test_tokens(['string a = \'\\\'\' + \'\\\"\';']), "'\"")
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
 
 
     def test_booleans_declaration(self):
-        sys.stdout = open(self.log_file, 'a')
         print('\n--------BOOLEANS DECLARATION--------')
         self.assertEqual(plyparser.test_tokens(['boolean a;']), 'a')
         self.assertEqual(plyparser.test_tokens(['boolean b = 3;']), None)
@@ -91,11 +75,8 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens(['boolean oas = false;']), False)
         self.assertEqual(plyparser.test_tokens(['boolean oas = true']), None)
         self.assertEqual(plyparser.test_tokens(['boolean oas = false']), None)
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
 
     def test_comparisons_number_as_declaration(self):
-        sys.stdout = open(self.log_file, 'a')
         print('\n--------COMPARISONS OF NUMBER DECLARATION--------')
         # Integers
         self.assertEqual(plyparser.test_tokens(['boolean a = (1 == 1);']), True)
@@ -116,11 +97,8 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens(['boolean a = (1 >= 2.0);']), False)
         self.assertEqual(plyparser.test_tokens(['boolean b = (1 <= 1.0);']), True)
         self.assertEqual(plyparser.test_tokens(['boolean a = (1.0 >= 1);']), True)
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
 
     def test_comparisons_string_as_declaration(self):
-        sys.stdout = open(self.log_file, 'a')
         print('\n--------COMPARISONS OF STRING DECLARATION--------')
         self.assertEqual(plyparser.test_tokens(['boolean a = ("1" == "1");']), True)
         self.assertEqual(plyparser.test_tokens(['boolean a = ("1 " == "1");']), False)
@@ -136,11 +114,8 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens(['boolean a = ("" == true);']), False)
         self.assertEqual(plyparser.test_tokens(['boolean a = ("true" == 123);']), None)
         self.assertEqual(plyparser.test_tokens(['boolean a = (123 == "123");']), None)
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
 
     def test_comparisons_boolean_as_declaration(self):
-        sys.stdout = open(self.log_file, 'a')
         print('\n--------COMPARISONS OF BOOLEAN DECLARATION--------')
         self.assertEqual(plyparser.test_tokens(['boolean a = (true == 1);']), True)
         self.assertEqual(plyparser.test_tokens(['boolean a = (false == 123123);']), False)
@@ -148,19 +123,31 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens(['boolean a = (true == true);']), True)
         self.assertEqual(plyparser.test_tokens(['boolean a = (false != true);']), True)
         self.assertEqual(plyparser.test_tokens(['boolean a = (false != false);']), False)
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
         
 
     def test_comparisons_nested(self):
-        sys.stdout = open(self.log_file, 'a')
         print('\n--------COMPARISONS NESTED--------')
         self.assertEqual(plyparser.test_tokens(['boolean a = (true == (1 == 1));']), True)
         self.assertEqual(plyparser.test_tokens(['boolean a = ((1 == 1) == true);']), True)
         self.assertEqual(plyparser.test_tokens(['boolean a = ((1 != 1) == true);']), False)
         self.assertEqual(plyparser.test_tokens(['boolean a = (1 == (1 == 1));']), True)
         self.assertEqual(plyparser.test_tokens(['boolean a = ((false) == true);']), False)
-        sys.stdout.close()
-        sys.stdout = sys.__stdout__
 
-unittest.main()
+    def test_number_block_operations(self):
+        print('\n--------PARENTHESIS OPERATIONS--------')
+        self.assertEqual(plyparser.test_tokens(['boolean a = (true == (12 / 12));']), True)
+        self.assertEqual(plyparser.test_tokens(['boolean a = (true == (4 / 2) - 1);']), True)
+        self.assertEqual(plyparser.test_tokens(['boolean a = (true == ((4 / 2) - (12 / 12)));']), True)
+        self.assertEqual(plyparser.test_tokens(['boolean a = (true == ((2 / 2) - (12 / 12)));']), False)
+        self.assertEqual(plyparser.test_tokens(['int a = ((40 / 2) - (12 / 12));']), 19.0)
+        self.assertEqual(plyparser.test_tokens(['int a = (32 -(44 - 10 * (2*2)) / 4);']), 31)
+
+
+if __name__ == '__main__':
+    log_file = 'parser_tests.log'
+    sys.stdout = open(log_file, 'a')
+    print('Last time tested:\n' + str(datetime.datetime.now()) + '\n')
+    unittest.main()
+    sys.stdout.close()
+    sys.stdout = sys.__stdout__
+       
