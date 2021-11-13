@@ -24,6 +24,7 @@ numstmt -> numexpr
 numexpr -> number
          | numexpr arit numexpr
          | numstmt arit numexpr
+         | numexpr arit numstmt
 
 number -> INUMBER
         | FNUMBER
