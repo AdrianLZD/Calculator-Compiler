@@ -1,32 +1,33 @@
 script -> block
 
 block -> stmt block
-       | stmt
+       | 
 
 stmt -> simstmt ;
       | flowctrl
       | printstmt ;
+      | NEWLINE
     
 simstmt -> INT ID
-         | INT ID = numexpr
+         | INT ID = numstmt
          | FLOAT ID
-         | FLOAT ID = numexpr
+         | FLOAT ID = numstmt
          | STRING ID
-         | STRING ID = wordexpr
+         | STRING ID = wordstmt
          | BOOLEAN ID
          | BOOLEAN ID = boolexpr
-         | ID = expr
+         | ID = expr                      -Implementation missing
 
-expr -> numexpr
-      | wordexpr
-      | boolexpr
-
+numstmt -> numexpr 
+         | ( numexpr )
 
 numexpr -> number
          | numexpr arit numexpr
+         | numstmt arit numexpr
+         | numexpr arit numstmt
 
-number -> INT
-        | FLOAT
+number -> INUMBER
+        | FNUMBER
         | ID
 
 arit -> +
@@ -35,4 +36,49 @@ arit -> +
       | /
       | ^
 
-printstmt -> ( expr )
+wordstmt -> wordexpr
+          | numstmt
+          | numstmt + wordstmt
+
+wordexpr -> WORD
+          | ID
+          | wordexpr + wordexpr
+          | wordstmt + wordstmt
+          | wordexpr + wordstmt
+          | wordstmt + wordexpr
+
+boolexpr -> TRUE
+          | FALSE
+          | ID
+          | compar
+
+compar -> ( comparexpr )
+        | ( boolexpr )
+
+comparexpr -> numstmt compbasic boolexpr
+            | boolexpr compbasic numstmt
+            | wordexpr compmin wordexpr
+            | numstmt compall numstmt
+            | comparexpr compall comparexpr
+            | boolexpr compbasic boolexpr
+            | wordexpr compmin boolexpr
+            | boolexpr compmin wordexpr
+
+compall -> GTEQUALS
+         | LSEQUALS
+         | '>'
+         | '<'
+         | compbasic
+
+compbasic -> AND
+           | OR
+           | compmin
+
+compmin -> EQUALS
+         | NOTEQUALS
+          
+flowctrl -> if compar { block }           -Implementation missing       
+          | while compar { block }        -Implementation missing
+          | for ( ; ; ){ block }          -Implementation missing
+
+printstmt -> ( expr )                     -Implementation missing
