@@ -1,7 +1,7 @@
 script -> block
 
 block -> stmt block
-       | stmt
+       | 
 
 stmt -> simstmt ;
       | flowctrl
@@ -13,7 +13,7 @@ simstmt -> INT ID
          | FLOAT ID
          | FLOAT ID = numstmt
          | STRING ID
-         | STRING ID = wordexpr
+         | STRING ID = wordstmt
          | BOOLEAN ID
          | BOOLEAN ID = boolexpr
          | ID = expr                      -Implementation missing
@@ -36,9 +36,16 @@ arit -> +
       | /
       | ^
 
+wordstmt -> wordexpr
+          | numstmt
+          | numstmt + wordstmt
+
 wordexpr -> WORD
-          | wordexpr + wordexpr
           | ID
+          | wordexpr + wordexpr
+          | wordstmt + wordstmt
+          | wordexpr + wordstmt
+          | wordstmt + wordexpr
 
 boolexpr -> TRUE
           | FALSE
