@@ -46,7 +46,7 @@ def p_block(p):
     block : stmt block
           |
     '''
-    if len(p) > 1 :
+    if len(p) == 3 :
         p[0] = Node('block', 'block', [p[1]])
         p[1].parent = p[0]
         for child in p[2].children:
@@ -54,19 +54,13 @@ def p_block(p):
     else:
         p[0] = Node('block', 'empty')
 
+
 def p_stmt(p):
     '''
     stmt : simstmt ';'
          | flowctrl
     '''
     p[0] = p[1]
-
-def p_stmt_newline(p):
-    '''
-    stmt : NEWLINE
-         | 
-    '''
-    p[0] = None
 
 
 def p_simstmt_declaration(p):
@@ -338,15 +332,28 @@ def p_flowctrl(p):
     p[0] = p[1]
 
 
-def p_ifblock(p):
+def p_if_block(p):
     '''
     ifblock : IF '(' boolstmt ')' '{' block '}'
             | IF '(' numstmt ')' '{' block '}'
             | IF '(' wordstmt ')' '{' block '}'
     '''
-    p[0] = Node('if', 'if', [p[3], p[6]])
-    p[3].parent = p[0]
-    p[6].parent = p[0]
+    condition = Node('cond', 'cond', [p[3], p[6]])
+    p[0] = Node('if', 'if', [condition])
+    condition.parent = p[0]
+    p[6].parent = condition
+    p[3].parent = condition
+
+
+def p_ifelse_block(p):
+    '''
+    ifblock : ifblock ELSE '{' block '}'
+    '''
+    elseblock = Node(p[2], p[2], [p[4]])
+    elseblock.parent = p[1]
+    p[0] = p[1]
+    p[1].children.append(elseblock)
+    p[4].parent = p[1]
 
 
 def p_error(p):
@@ -355,26 +362,6 @@ def p_error(p):
         print("Syntax error at line '%s' character '%s'" %(p.lineno, p.lexpos))
     else:
         print("Syntax error at EOF")
-
-
-parser = yacc.yacc()
-if __name__ == '__main__':
-    while True:
-        try:
-            s = input('> ')
-        except EOFError:
-            break
-        if not s:
-            continue
-
-        try:
-            res = yacc.parse(s)
-            out = res if res == None else res.print_basic_test() + '\n' + res.print()
-            #out = res if res == None else res.print()
-            print(out)
-        except LexError:
-            print(s + ' is not a valid input')
-        
 
 
 def test_tokens(arg):
@@ -394,6 +381,24 @@ def test_tokens_parents(arg):
     else:
         print('[!] No arguments where received')
 
+
+parser = yacc.yacc()
+if __name__ == '__main__':
+    while True:
+        try:
+            s = input('> ')
+        except EOFError:
+            break
+        if not s:
+            continue
+
+        try:
+            res = yacc.parse(s)
+            #out = res if res == None else res.print_basic_test() + '\n' + res.print()
+            out = res if res == None else res.print()
+            print(out)
+        except LexError:
+            print(s + ' is not a valid input')
 
 
 

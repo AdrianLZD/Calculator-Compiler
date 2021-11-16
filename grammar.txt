@@ -95,5 +95,6 @@ flowctrl -> ifblock
 ifblock -> IF ( boolstmt ) { block }
          | IF ( numstmt ) { block }
          | IF ( wordstmt ) { block } 
+         | ifblock ELSE { block }
 
 printstmt -> ( expr )                     -Implementation missing

@@ -31,7 +31,7 @@ tokens = list(keywords.values()) + [
     'NEWLINE'
 ]
 
-t_ignore = " \t"
+t_ignore = " \t|\n"
 
 t_INUMBER = r'\d+'
 t_FNUMBER = r'((\d*\.\d+)(E[\+-]?\d+)?|([1-9]\d*E[\+-]?\d+))'
