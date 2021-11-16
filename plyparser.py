@@ -1,10 +1,10 @@
 import ply.yacc as yacc
-import lexer
+import plylexer
 import operator
 from plynode import Node
 from ply.lex import LexError
 
-tokens = lexer.tokens
+tokens = plylexer.tokens
 
 precedence = (
     ('left', '+', '-'),
