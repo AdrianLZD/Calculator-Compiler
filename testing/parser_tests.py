@@ -5,6 +5,7 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import unittest
 import plyparser
 import datetime
+from ply.lex import LexError
 
 
 class TestDeclarations(unittest.TestCase):
@@ -15,7 +16,7 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('int b = 3;') , 'block|b|3|')
         self.assertEqual(plyparser.test_tokens('int b = 3.0;'), 'block|b|3.0|')
         self.assertEqual(plyparser.test_tokens('int c') , None)
-        self.assertEqual(plyparser.test_tokens('int $$$;'), 'ERROR|')
+        self.assertRaises(LexError, plyparser.test_tokens, 'int $$$;')
         self.assertEqual(plyparser.test_tokens('int _a;'), 'block|_a|0|')
         self.assertEqual(plyparser.test_tokens('int a = 123124124') , None)
         self.assertEqual(plyparser.test_tokens('int a; int c;'), 'block|a|0|c|0|')
@@ -31,7 +32,7 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('float b = 3;'), 'block|b|3|')
         self.assertEqual(plyparser.test_tokens('float d = 0.0;'), 'block|d|0.0|')
         self.assertEqual(plyparser.test_tokens('float c'), None)
-        self.assertEqual(plyparser.test_tokens('float $$$;'), 'ERROR|')
+        self.assertRaises(LexError, plyparser.test_tokens, 'float $$$;')
         self.assertEqual(plyparser.test_tokens('float _a;'), 'block|_a|0.0|')
         self.assertEqual(plyparser.test_tokens('float a = 123124124'), None)
 
@@ -43,7 +44,9 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('string d = 0.0;'), 'ERROR|')
         self.assertEqual(plyparser.test_tokens('string b = (3);'), 'block|b|3|')
         self.assertEqual(plyparser.test_tokens('string c'), None)
-        self.assertEqual(plyparser.test_tokens('string $$$;'), 'ERROR|')
+        self.assertRaises(LexError, plyparser.test_tokens, 'string $$$;')
+        self.assertRaises(LexError, plyparser.test_tokens, 'string a = "test;')
+        self.assertRaises(LexError, plyparser.test_tokens, 'string b = \'test;')
         self.assertEqual(plyparser.test_tokens('string _a;'), 'block|_a||')
         self.assertEqual(plyparser.test_tokens('string a = "123124124";'), 'block|a|123124124|')
         self.assertEqual(plyparser.test_tokens('string a = "hola";'), 'block|a|hola|')
@@ -70,7 +73,7 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('boolean b = 3;'), 'ERROR|')
         self.assertEqual(plyparser.test_tokens('boolean d = 0.0;'), 'ERROR|')
         self.assertEqual(plyparser.test_tokens('boolean c'), None)
-        self.assertEqual(plyparser.test_tokens('boolean $$$;'), 'ERROR|')
+        self.assertRaises(LexError, plyparser.test_tokens,'boolean $$$;')
         self.assertEqual(plyparser.test_tokens('boolean _a;'), 'block|_a|False|')
         self.assertEqual(plyparser.test_tokens('boolean a = "123124124";'), 'ERROR|')
         self.assertEqual(plyparser.test_tokens('boolean c = 0;'), 'ERROR|')
@@ -78,6 +81,7 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('boolean oas = false;'), 'block|oas|False|')
         self.assertEqual(plyparser.test_tokens('boolean oas = true'), None)
         self.assertEqual(plyparser.test_tokens('boolean oas = false'), None)
+        self.assertEqual(plyparser.test_tokens('boolean oas = (false);'), 'block|oas|False|')
 
 
     def test_comparisons_number_as_declaration(self):
@@ -180,6 +184,18 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('string a = (1) + "test";'), 'block|a|+|1|test|')
         self.assertEqual(plyparser.test_tokens('string a = \'\\\"\' + \'\\\"\';'), 'block|a|+|"|"|')
         self.assertEqual(plyparser.test_tokens('string a = \'\\\'\' + \'\\\"\';'), "block|a|+|'|\"|")
+
+    def test_andor_expressions(self):
+        print('\n--------AND/OR EXPRESSIONS--------')
+        self.assertEqual(plyparser.test_tokens('boolean a = true and false;'), 'block|a|and|True|False|')
+        self.assertEqual(plyparser.test_tokens("boolean a = true or false;"), 'block|a|or|True|False|')
+        self.assertEqual(plyparser.test_tokens('boolean a = (true and false) or (true or true);'), 'block|a|or|and|True|False|or|True|True|')
+        self.assertEqual(plyparser.test_tokens('boolean a = (true and false) or (1);'), 'block|a|or|and|True|False|1|')
+        self.assertEqual(plyparser.test_tokens('boolean a = 0 or 1;'), 'block|a|or|0|1|')
+        self.assertEqual(plyparser.test_tokens('boolean a = (0) or (1);'), 'block|a|or|0|1|')
+        self.assertEqual(plyparser.test_tokens('boolean a = ("as") or (1);'), 'ERROR|')
+        self.assertEqual(plyparser.test_tokens('boolean a = (1) or (1)'), None)
+        self.assertEqual(plyparser.test_tokens('boolean a = 0 or true or false and 1;'), 'block|a|or|0|or|True|and|False|1|')
 
 
 if __name__ == '__main__':

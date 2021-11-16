@@ -2,6 +2,7 @@ import ply.yacc as yacc
 import lexer
 import operator
 from plynode import Node
+from ply.lex import LexError
 
 tokens = lexer.tokens
 
@@ -93,7 +94,7 @@ def p_simstmt_assign(p):
     simstmt : INT ID '=' numstmt
     simstmt : FLOAT ID '=' numstmt
     simstmt : STRING ID '=' wordstmt
-    simstmt : BOOLEAN ID '=' boolexpr
+    simstmt : BOOLEAN ID '=' boolstmt
     '''
     p[0] = Node(p[1], p[2], [p[4]])
     p[4].parent = p[0]
@@ -180,6 +181,7 @@ def p_wordstmt(p):
 def p_wordstmt_num(p):
     '''
     wordstmt : '(' numexpr ')'
+             | '(' wordexpr ')'
     '''
     p[0] = p[2]
 
@@ -219,6 +221,20 @@ def p_wordexpr_concats(p):
         p[0] = p[1] #TODO Set value of id
 
 
+def p_boolstmt(p):
+    '''
+    boolstmt : boolexpr
+    '''
+    p[0] = p[1]
+
+
+def p_boolstmt_block(p):
+    '''
+    boolstmt : '(' boolexpr ')'
+    '''
+    p[0] = p[2]
+
+
 def p_boolexpr_normal(p):
     '''
     boolexpr : TRUE
@@ -230,14 +246,37 @@ def p_boolexpr_normal(p):
 def p_boolexpr_types(p):
     '''
     boolexpr : ID
+             | boolcompar
     '''
-    p[0] = True if float(p[1]) > 0 else False  # TODO Fix ID declaration
+    p[0] = p[1] # TODO Fix ID declaration
+
 
 def p_boolexpr_compar(p):
     '''
     boolexpr : '(' compar ')'
     '''
     p[0] = p[2]
+
+
+def p_boolcompar(p):
+    '''
+    boolcompar : boolstmt complogic boolstmt
+               | boolstmt complogic numstmt
+               | numstmt complogic boolstmt
+               | numstmt complogic numstmt
+    '''
+    p[0] = Node(p[2], p[2], [p[1], p[3]])
+    p[1].parent = p[0]
+    p[3].parent = p[0]
+
+
+def p_complogic(p):
+    '''
+    complogic : AND
+              | OR
+    '''
+    p[0] = p[1]
+
 
 def p_compar(p):
     '''
@@ -246,38 +285,22 @@ def p_compar(p):
     '''
     p[0] = p[1]
 
+
 def p_comparexpr(p):
     '''
-    comparexpr : numstmt compall boolexpr
-               | boolexpr compall numstmt
-               | wordexpr compall wordexpr
+    comparexpr : numstmt compall boolstmt
+               | boolstmt compall numstmt
+               | wordstmt compall wordstmt
                | numstmt compall numstmt
                | comparexpr compall comparexpr
-               | boolexpr compall boolexpr
-               | wordexpr compall boolexpr
-               | boolexpr compall wordexpr
+               | boolstmt compall boolstmt
+               | wordstmt compall boolstmt
+               | boolstmt compall wordstmt
     '''
     p[0] = Node(p[2], p[2], [p[1], p[3]])
     p[1].parent = p[0]
     p[3].parent = p[3]
 
-# def p_comparexpr_bool_bool(p):
-#     '''
-#     comparexpr : 
-#     '''
-#     p[0] = comps[p[2]](str_to_bool(p[1]), str_to_bool(p[3]))
-
-# def p_comparexpr_word_bool(p):
-#     '''
-#     comparexpr :
-#     '''
-#     p[0] = comps[p[2]](p[1], str_to_bool(p[3]))
-
-# def p_comparexpr_bool_word(p):
-#     '''
-#     comparexpr : 
-#     '''
-#     p[0] = comps[p[2]](str_to_bool(p[1]), p[3])
 
 def p_compall(p):
     '''
@@ -285,15 +308,7 @@ def p_compall(p):
             | LSEQUALS
             | '>'
             | '<'
-            | compbasic
-    '''
-    p[0] = p[1]
-
-def p_compbasic(p):
-    '''
-    compbasic : AND
-              | OR
-              | compmin
+            | compmin
     '''
     p[0] = p[1]
 
@@ -304,6 +319,7 @@ def p_compmin(p):
             | NOTEQUALS
     '''
     p[0] = p[1]
+
 
 def p_error(p):
     if p:
@@ -322,10 +338,15 @@ if __name__ == '__main__':
             break
         if not s:
             continue
-        res = yacc.parse(s)
-        out = res if res == None else res.print_test() +'\n'+ res.print()
-        #out = res if res == None else res.print()
-        print(out)
+
+        try:
+            res = yacc.parse(s)
+            out = res if res == None else res.print_test() + '\n' + res.print()
+            #out = res if res == None else res.print()
+            print(out)
+        except LexError:
+            print(s + ' is not a valid input')
+        
 
 
 def test_tokens(arg):

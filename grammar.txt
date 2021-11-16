@@ -4,8 +4,8 @@ block -> stmt block
        | 
 
 stmt -> simstmt ;
-      | flowctrl
-      | printstmt ;
+      | flowctrl                          -Implementation missing
+      | printstmt ;                       -Implementation missing
       | NEWLINE
     
 simstmt -> INT ID
@@ -15,7 +15,7 @@ simstmt -> INT ID
          | STRING ID
          | STRING ID = wordstmt
          | BOOLEAN ID
-         | BOOLEAN ID = boolexpr
+         | BOOLEAN ID = boolstmt
          | ID = expr                      -Implementation missing
 
 numstmt -> numexpr 
@@ -25,10 +25,12 @@ numexpr -> number
          | numexpr arit numexpr
          | numstmt arit numexpr
          | numexpr arit numstmt
+         | - numexpr %prec UMINUS
+         | + numexpr %prec UMINUS
 
 number -> INUMBER
         | FNUMBER
-        | ID
+        | ID                              -Implementation missing
 
 arit -> +
       | -
@@ -37,8 +39,8 @@ arit -> +
       | ^
 
 wordstmt -> wordexpr
-          | numstmt
-          | numstmt + wordstmt
+          | ( numexpr )
+          | ( wordexpr )
 
 wordexpr -> WORD
           | ID
@@ -47,32 +49,40 @@ wordexpr -> WORD
           | wordexpr + wordstmt
           | wordstmt + wordexpr
 
+boolstmt -> boolexpr
+          | ( boolexpr )
+
 boolexpr -> TRUE
           | FALSE
           | ID
-          | compar
+          | boolcompar
+          | ( compar )
 
-compar -> ( comparexpr )
-        | ( boolexpr )
+boolcompar -> boolstmt complogic boolstmt
+            | boolstmt complogic numstmt
+            | numstmt complogic boolstmt
+            | numstmt complogic numstmt
 
-comparexpr -> numstmt compbasic boolexpr
-            | boolexpr compbasic numstmt
-            | wordexpr compmin wordexpr
+complogic -> AND
+           | OR
+
+compar -> comparexpr
+        | boolexpr
+
+comparexpr -> numstmt compall boolstmt
+            | boolstmt compall numstmt
+            | wordstmt compall wordstmt
             | numstmt compall numstmt
             | comparexpr compall comparexpr
-            | boolexpr compbasic boolexpr
-            | wordexpr compmin boolexpr
-            | boolexpr compmin wordexpr
+            | boolstmt compall boolstmt
+            | wordstmt compall boolstmt
+            | boolstmt compall wordstmt
 
 compall -> GTEQUALS
          | LSEQUALS
          | '>'
          | '<'
-         | compbasic
-
-compbasic -> AND
-           | OR
-           | compmin
+         | compmin
 
 compmin -> EQUALS
          | NOTEQUALS
