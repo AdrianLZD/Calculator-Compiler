@@ -14,6 +14,7 @@ class TestDeclarations(unittest.TestCase):
         print('\n--------INTEGERS DECLARATION--------')
         self.assertEqual(plyparser.test_tokens('int a;'), 'block|a|0|')
         self.assertEqual(plyparser.test_tokens('int b = 3;') , 'block|b|3|')
+        self.assertEqual(plyparser.test_tokens('int b = ((((3))));'), 'block|b|3|')
         self.assertEqual(plyparser.test_tokens('int b = 3.0;'), 'block|b|3.0|')
         self.assertEqual(plyparser.test_tokens('int c') , None)
         self.assertRaises(LexError, plyparser.test_tokens, 'int $$$;')
@@ -24,7 +25,6 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('int a = -1;'), 'block|a|-1|')
         self.assertEqual(plyparser.test_tokens('int a = ------1;'), 'block|a|------1|')
         
-
 
     def test_floats_declaration(self):
         print('\n--------FLOATS DECLARATION--------')
@@ -40,8 +40,8 @@ class TestDeclarations(unittest.TestCase):
     def test_strings_declaration(self):
         print('\n--------STRINGS DECLARATION--------')
         self.assertEqual(plyparser.test_tokens('string a;'), 'block|a||')
-        self.assertEqual(plyparser.test_tokens('string b = 3;'), 'ERROR|')
-        self.assertEqual(plyparser.test_tokens('string d = 0.0;'), 'ERROR|')
+        self.assertEqual(plyparser.test_tokens('string b = 3;'), 'empty|')
+        self.assertEqual(plyparser.test_tokens('string d = 0.0;'), 'empty|')
         self.assertEqual(plyparser.test_tokens('string b = (3);'), 'block|b|3|')
         self.assertEqual(plyparser.test_tokens('string c'), None)
         self.assertRaises(LexError, plyparser.test_tokens, 'string $$$;')
@@ -70,13 +70,13 @@ class TestDeclarations(unittest.TestCase):
     def test_booleans_declaration(self):
         print('\n--------BOOLEANS DECLARATION--------')
         self.assertEqual(plyparser.test_tokens('boolean a;'), 'block|a|False|')
-        self.assertEqual(plyparser.test_tokens('boolean b = 3;'), 'ERROR|')
-        self.assertEqual(plyparser.test_tokens('boolean d = 0.0;'), 'ERROR|')
+        self.assertEqual(plyparser.test_tokens('boolean b = 3;'), 'empty|')
+        self.assertEqual(plyparser.test_tokens('boolean d = 0.0;'), 'empty|')
         self.assertEqual(plyparser.test_tokens('boolean c'), None)
         self.assertRaises(LexError, plyparser.test_tokens,'boolean $$$;')
         self.assertEqual(plyparser.test_tokens('boolean _a;'), 'block|_a|False|')
-        self.assertEqual(plyparser.test_tokens('boolean a = "123124124";'), 'ERROR|')
-        self.assertEqual(plyparser.test_tokens('boolean c = 0;'), 'ERROR|')
+        self.assertEqual(plyparser.test_tokens('boolean a = "123124124";'), 'empty|')
+        self.assertEqual(plyparser.test_tokens('boolean c = 0;'), 'empty|')
         self.assertEqual(plyparser.test_tokens('boolean oas = true;'), 'block|oas|True|')
         self.assertEqual(plyparser.test_tokens('boolean oas = false;'), 'block|oas|False|')
         self.assertEqual(plyparser.test_tokens('boolean oas = true'), None)
@@ -121,8 +121,8 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('boolean a = ("trues" == true);'), 'block|a|==|trues|True|') #False
         self.assertEqual(plyparser.test_tokens('boolean a = ("true" == true);'), 'block|a|==|true|True|') #False
         self.assertEqual(plyparser.test_tokens('boolean a = ("" == true);'), 'block|a|==||True|') #False
-        self.assertEqual(plyparser.test_tokens('boolean a = ("true" == 123);'), 'ERROR|') #None
-        self.assertEqual(plyparser.test_tokens('boolean a = (123.0 == "123");'), 'ERROR|') #None
+        self.assertEqual(plyparser.test_tokens('boolean a = ("true" == 123);'), 'empty|') #None
+        self.assertEqual(plyparser.test_tokens('boolean a = (123.0 == "123");'), 'empty|') #None
 
 
     def test_comparisons_boolean_as_declaration(self):
@@ -175,7 +175,7 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens("string a = '' + '';"), 'block|a|+|||')
         self.assertEqual(plyparser.test_tokens('string a = "asd" + "1";'), 'block|a|+|asd|1|')
         self.assertEqual(plyparser.test_tokens("string a = 'asd' + (1);"), 'block|a|+|asd|1|')
-        self.assertEqual(plyparser.test_tokens("string a = 'asd' + 1;"), 'ERROR|')
+        self.assertEqual(plyparser.test_tokens("string a = 'asd' + 1;"), 'empty|')
         self.assertEqual(plyparser.test_tokens('string a = "" + (1);'), 'block|a|+||1|')
         self.assertEqual(plyparser.test_tokens('string a = ""+(1);'), 'block|a|+||1|')
         self.assertEqual(plyparser.test_tokens('string a = ""+(1+2);'), 'block|a|+||+|1|2|')
@@ -185,6 +185,7 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('string a = \'\\\"\' + \'\\\"\';'), 'block|a|+|"|"|')
         self.assertEqual(plyparser.test_tokens('string a = \'\\\'\' + \'\\\"\';'), "block|a|+|'|\"|")
 
+
     def test_andor_expressions(self):
         print('\n--------AND/OR EXPRESSIONS--------')
         self.assertEqual(plyparser.test_tokens('boolean a = true and false;'), 'block|a|and|True|False|')
@@ -193,9 +194,33 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('boolean a = (true and false) or (1);'), 'block|a|or|and|True|False|1|')
         self.assertEqual(plyparser.test_tokens('boolean a = 0 or 1;'), 'block|a|or|0|1|')
         self.assertEqual(plyparser.test_tokens('boolean a = (0) or (1);'), 'block|a|or|0|1|')
-        self.assertEqual(plyparser.test_tokens('boolean a = ("as") or (1);'), 'ERROR|')
+        self.assertEqual(plyparser.test_tokens('boolean a = ("as") or (1);'), 'empty|')
         self.assertEqual(plyparser.test_tokens('boolean a = (1) or (1)'), None)
         self.assertEqual(plyparser.test_tokens('boolean a = 0 or true or false and 1;'), 'block|a|or|0|or|True|and|False|1|')
+
+    
+    def test_if_blocks(self):
+        print('\n--------IF BLOCKS--------')
+        self.assertEqual(plyparser.test_tokens('if (true) { int a;}'), 'block|if|True|block|a|0|')
+        self.assertEqual(plyparser.test_tokens('if true { int a;}'), 'empty|')
+        self.assertEqual(plyparser.test_tokens('if (true) { }'), 'block|if|True|empty|')
+        self.assertEqual(plyparser.test_tokens('if (true or false ) { int a;}'), 'block|if|or|True|False|block|a|0|')
+        self.assertEqual(plyparser.test_tokens('if () { int a;}'), 'empty|')
+        self.assertEqual(plyparser.test_tokens('if (1) { int a;}'), 'block|if|1|block|a|0|')
+        self.assertEqual(plyparser.test_tokens('if (1 + 2) { int a;}'), 'block|if|+|1|2|block|a|0|')
+        self.assertEqual(plyparser.test_tokens('if ("test") { int a;}'), 'block|if|test|block|a|0|')
+        self.assertEqual(plyparser.test_tokens('if (((1))) { int a;}'), 'block|if|1|block|a|0|')
+        self.assertEqual(plyparser.test_tokens('if (true or false ) { int a;}'), 'block|if|or|True|False|block|a|0|')
+        self.assertEqual(plyparser.test_tokens('if (((1)) or false) { int a;}'), 'block|if|or|1|False|block|a|0|')
+
+    def test_if_nestedblocks(self):
+        print('\n--------IF BLOCKS--------')
+        self.assertEqual(plyparser.test_tokens_parents('if (true) { if (true) { int a;}}'), 'P0_block|P1_if|P2_True|P2_block|P3_if|P4_True|P4_block|P5_a|P6_0|')
+        self.assertEqual(plyparser.test_tokens_parents('if true { if true { int a;}}'), 'P0_empty|')
+        self.assertEqual(plyparser.test_tokens_parents('if (true) { if (true) {}}'), 'P0_block|P1_if|P2_True|P2_block|P3_if|P4_True|P4_empty|')
+        self.assertEqual(plyparser.test_tokens_parents('if (true) { if (true) { int a;} int b = 0;}'), 'P0_block|P1_if|P2_True|P2_block|P3_if|P4_True|P4_block|P5_a|P6_0|P3_b|P4_0|')
+        self.assertEqual(plyparser.test_tokens_parents('if (true) { if (true) { int a;} } int b = 0;'), 'P0_block|P1_if|P2_True|P2_block|P3_if|P4_True|P4_block|P5_a|P6_0|P1_b|P2_0|')
+
 
 
 if __name__ == '__main__':

@@ -1,6 +1,5 @@
 import ply.yacc as yacc
 import plylexer
-import operator
 from plynode import Node
 from ply.lex import LexError
 
@@ -53,11 +52,12 @@ def p_block(p):
         for child in p[2].children:
             p[0].children.append(child)
     else:
-        p[0] = Node('ERROR', 'ERROR')
+        p[0] = Node('block', 'empty')
 
 def p_stmt(p):
     '''
     stmt : simstmt ';'
+         | flowctrl
     '''
     p[0] = p[1]
 
@@ -67,6 +67,7 @@ def p_stmt_newline(p):
          | 
     '''
     p[0] = None
+
 
 def p_simstmt_declaration(p):
     '''
@@ -88,7 +89,6 @@ def p_simstmt_declaration(p):
     child.parent =p[0]
 
 
-
 def p_simstmt_assign(p):
     '''
     simstmt : INT ID '=' numstmt
@@ -99,23 +99,28 @@ def p_simstmt_assign(p):
     p[0] = Node(p[1], p[2], [p[4]])
     p[4].parent = p[0]
 
+
 def p_numstmt(p):
     '''
     numstmt : numexpr
     '''
     p[0] = p[1]
 
+
 def p_numstmt_block(p):
     '''
     numstmt : '(' numexpr ')'
+            | '(' numstmt ')'
     '''
     p[0] = p[2]
+
 
 def p_numexpr(p):
     '''
     numexpr : number
     '''
     p[0] = p[1]
+
 
 def p_numexpr_arit(p):
     '''
@@ -127,6 +132,7 @@ def p_numexpr_arit(p):
     p[0] = Node(p[2], p[2], [p[1], p[3]])
     p[1].parent = p[0]
     p[3].parent = p[0]
+
 
 def p_numexpr_uminus(p):
     '''
@@ -140,6 +146,7 @@ def p_numexpr_uminus(p):
         p[2].children[0].value = p[1] + p[2].children[0].value
         
     p[0] = p[2]
+
 
 def p_number_id(p):
     '''
@@ -161,6 +168,7 @@ def p_number_float(p):
     '''
     p[0] = Node('float', p[1])
 
+
 def p_arit(p):
     '''
     arit : '+'
@@ -177,6 +185,7 @@ def p_wordstmt(p):
     wordstmt : wordexpr
     '''
     p[0] = p[1]
+
 
 def p_wordstmt_num(p):
     '''
@@ -203,6 +212,7 @@ def p_wordexpr_word(p):
             wordFix += word[i]
         i += 1
     p[0] = Node('string', wordFix)
+
 
 def p_wordexpr_concats(p):
     '''
@@ -321,6 +331,24 @@ def p_compmin(p):
     p[0] = p[1]
 
 
+def p_flowctrl(p):
+    '''
+    flowctrl : ifblock
+    '''
+    p[0] = p[1]
+
+
+def p_ifblock(p):
+    '''
+    ifblock : IF '(' boolstmt ')' '{' block '}'
+            | IF '(' numstmt ')' '{' block '}'
+            | IF '(' wordstmt ')' '{' block '}'
+    '''
+    p[0] = Node('if', 'if', [p[3], p[6]])
+    p[3].parent = p[0]
+    p[6].parent = p[0]
+
+
 def p_error(p):
     if p:
         print(p)
@@ -341,7 +369,7 @@ if __name__ == '__main__':
 
         try:
             res = yacc.parse(s)
-            out = res if res == None else res.print_test() + '\n' + res.print()
+            out = res if res == None else res.print_basic_test() + '\n' + res.print()
             #out = res if res == None else res.print()
             print(out)
         except LexError:
@@ -353,7 +381,16 @@ def test_tokens(arg):
     if arg:
         print('Test: ' + str(arg))
         res = yacc.parse(arg)
-        return res if res == None else res.print_test()
+        return res if res == None else res.print_basic_test()
+    else:
+        print('[!] No arguments where received')
+
+
+def test_tokens_parents(arg):
+    if arg:
+        print('Test: ' + str(arg))
+        res = yacc.parse(arg)
+        return res if res == None else res.print_parent_test()
     else:
         print('[!] No arguments where received')
 

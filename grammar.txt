@@ -1,7 +1,7 @@
 script -> block
 
 block -> stmt block
-       | 
+       |
 
 stmt -> simstmt ;
       | flowctrl                          -Implementation missing
@@ -87,8 +87,13 @@ compall -> GTEQUALS
 compmin -> EQUALS
          | NOTEQUALS
           
-flowctrl -> if compar { block }           -Implementation missing       
+
+flowctrl -> ifblock                 
           | while compar { block }        -Implementation missing
           | for ( ; ; ){ block }          -Implementation missing
+
+ifblock -> IF ( boolstmt ) { block }
+         | IF ( numstmt ) { block }
+         | IF ( wordstmt ) { block } 
 
 printstmt -> ( expr )                     -Implementation missing

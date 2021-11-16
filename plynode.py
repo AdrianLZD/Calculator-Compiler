@@ -31,16 +31,32 @@ class Node:
 
         return toStr
 
-    
-    def print_test(self):
+    # Prints only the value of nodes
+    def print_basic_test(self):
         toStr = ''
         if type(self.value) == Node:
             toStr += self.type + '|'
-            toStr += self.value.print_test()
+            toStr += self.value.print_basic_test()
         else:
             toStr += str(self.value) + '|'
             
         for child in self.children:
-            toStr += child.print_test()
+            toStr += child.print_basic_test()
+
+        return toStr
+
+    # Prints value and parent of nodes
+    def print_parent_test(self, depth = 0):
+        toStr = ''
+        if type(self.value) == Node:
+            toStr += 'P' + str(depth) + '_'
+            toStr += self.type + '|'
+            toStr += self.value.print_parent_test(depth=depth+1)
+        else:
+            toStr += 'P' + str(depth) + '_'
+            toStr += str(self.value) + '|'
+
+        for child in self.children:
+            toStr += child.print_parent_test(depth=depth+1)
 
         return toStr
