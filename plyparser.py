@@ -171,15 +171,6 @@ def p_arit(p):
     p[0] = p[1]
 
 
-def p_wordstmt_numconcat(p):
-    '''
-    wordstmt : numstmt '+' wordstmt
-    '''
-    p[0] = Node('+', '+', [p[1], p[3]])
-    p[1].parent = p[0]
-    p[3].parent = p[0]
-
-
 def p_wordstmt(p):
     '''
     wordstmt : wordexpr
