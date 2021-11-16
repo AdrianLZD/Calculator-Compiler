@@ -183,9 +183,14 @@ def p_wordstmt_numconcat(p):
 def p_wordstmt(p):
     '''
     wordstmt : wordexpr
-             | numstmt
     '''
     p[0] = p[1]
+
+def p_wordstmt_num(p):
+    '''
+    wordstmt : '(' numexpr ')'
+    '''
+    p[0] = p[2]
 
 
 def p_wordexpr_word(p):
