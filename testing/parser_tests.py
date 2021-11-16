@@ -258,6 +258,9 @@ class TestDeclarations(unittest.TestCase):
         , 'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_a|P5_1|P2_else|P3_block|P4_if|P5_cond|P6_1|P6_block|P7_b|P8_2|P5_else|P6_block|P7_c|P8_3|P1_d|P2_4|')
         
 
+    def test_if_elif_blocks(self):
+        print('\n--------IF ELIF BLOCKS--------')
+        # TODO Add tests 
 
 
 if __name__ == '__main__':

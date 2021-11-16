@@ -96,5 +96,8 @@ ifblock -> IF ( boolstmt ) { block }
          | IF ( numstmt ) { block }
          | IF ( wordstmt ) { block } 
          | ifblock ELSE { block }
+         | ifblock ELIF ( boolstmt ) { block }
+         | ifblock ELIF ( numstmt ) { block }
+         | ifblock ELIF ( wordstmt ) { block }
 
 printstmt -> ( expr )                     -Implementation missing

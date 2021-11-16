@@ -356,6 +356,22 @@ def p_ifelse_block(p):
     p[4].parent = p[1]
 
 
+def p_ifelif_block(p):
+    '''
+    ifblock : ifblock ELIF '(' boolstmt ')' '{' block '}'
+            | ifblock ELIF '(' numstmt ')' '{' block '}'
+            | ifblock ELIF '(' wordstmt ')' '{' block '}'
+    '''
+    condition = Node('cond', 'cond', [p[4], p[7]])
+    elseif = Node('elif', 'elif', [condition])
+    elseif.parent = p[1]
+    condition.parent = elseif
+    p[0] = p[1]
+    p[4].parent = condition
+    p[7].parent = condition
+    p[1].children.append(elseif)
+    
+
 def p_error(p):
     if p:
         print(p)
