@@ -219,6 +219,8 @@ class TestDeclarations(unittest.TestCase):
         print('\n--------IF BLOCKS--------')
         self.assertEqual(plyparser.test_tokens('if (true) { int a;}'), 'block|if|cond|True|block|a|0|')
         self.assertEqual(plyparser.test_tokens('if true { int a;}'), 'empty|')
+        self.assertEqual(plyparser.test_tokens('if (true) }'), 'empty|')
+        self.assertEqual(plyparser.test_tokens('if (true) { int a;'), None)
         self.assertEqual(plyparser.test_tokens('if (true) { }'), 'block|if|cond|True|empty|')
         self.assertEqual(plyparser.test_tokens('if (true or false ) { int a;}'), 'block|if|cond|or|True|False|block|a|0|')
         self.assertEqual(plyparser.test_tokens('if () { int a;}'), 'empty|')
@@ -260,7 +262,9 @@ class TestDeclarations(unittest.TestCase):
 
     def test_if_elif_blocks(self):
         print('\n--------IF ELIF BLOCKS--------')
-        # TODO Add tests 
+        self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif(true){ }'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif(true){ }else{ }'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|P2_else|P3_empty|')
+        
 
 
 if __name__ == '__main__':

@@ -363,13 +363,11 @@ def p_ifelif_block(p):
             | ifblock ELIF '(' wordstmt ')' '{' block '}'
     '''
     condition = Node('cond', 'cond', [p[4], p[7]])
-    elseif = Node('elif', 'elif', [condition])
-    elseif.parent = p[1]
-    condition.parent = elseif
     p[0] = p[1]
+    p[1].children.append(condition)
+    condition.parent = p[1]
     p[4].parent = condition
     p[7].parent = condition
-    p[1].children.append(elseif)
     
 
 def p_error(p):
@@ -410,8 +408,9 @@ if __name__ == '__main__':
 
         try:
             res = yacc.parse(s)
+            out = res if res == None else res.print_parent_test() + '\n' + res.print()
             #out = res if res == None else res.print_basic_test() + '\n' + res.print()
-            out = res if res == None else res.print()
+            #out = res if res == None else res.print()
             print(out)
         except LexError:
             print(s + ' is not a valid input')
