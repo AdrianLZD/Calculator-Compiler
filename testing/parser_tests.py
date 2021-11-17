@@ -226,6 +226,7 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('if () { int a;}'), 'empty|')
         self.assertEqual(plyparser.test_tokens('if (1) { int a;}'), 'block|if|cond|1|block|a|0|')
         self.assertEqual(plyparser.test_tokens('if (1 + 2) { int a;}'), 'block|if|cond|+|1|2|block|a|0|')
+        self.assertEqual(plyparser.test_tokens('if (1 > 2) { int a;}'), 'block|if|cond|>|1|2|block|a|0|')
         self.assertEqual(plyparser.test_tokens('if ("test") { int a;}'), 'block|if|cond|test|block|a|0|')
         self.assertEqual(plyparser.test_tokens('if (((1))) { int a;}'), 'block|if|cond|1|block|a|0|')
         self.assertEqual(plyparser.test_tokens('if (true or false ) { int a;}'), 'block|if|cond|or|True|False|block|a|0|')
@@ -268,6 +269,17 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif{ }elif(true){ }'), 'P0_empty|')
         self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif(true){ }elif(true){ }'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
         self.assertEqual(plyparser.test_tokens_parents('if(true){ }if(true){ }elif(true){}'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
+
+    def test_while_blocks(self):
+        print('\n--------WHILE BLOCKS--------')
+        self.assertEqual(plyparser.test_tokens_parents('while(true){ int a = 0; }'), 'P0_block|P1_while|P2_cond|P3_True|P3_block|P4_a|P5_0|')
+        self.assertEqual(plyparser.test_tokens_parents('while(){ int a = 0; }'), 'P0_empty|')
+        self.assertEqual(plyparser.test_tokens_parents('while(true)'), None)
+        self.assertEqual(plyparser.test_tokens_parents('while(1 > 20){  }'), 'P0_block|P1_while|P2_cond|P3_>|P4_1|P4_20|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents('while((1 + 20) > 2){  }'), 'P0_block|P1_while|P2_cond|P3_>|P4_+|P5_1|P5_20|P4_2|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents('while(true){ }while(true){ }'), 'P0_block|P1_while|P2_cond|P3_True|P3_empty|P1_while|P2_cond|P3_True|P3_empty|')
+        
+
 
 if __name__ == '__main__':
     log_file = 'parser_tests.log'
