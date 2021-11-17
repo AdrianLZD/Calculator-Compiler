@@ -264,8 +264,10 @@ class TestDeclarations(unittest.TestCase):
         print('\n--------IF ELIF BLOCKS--------')
         self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif(true){ }'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
         self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif(true){ }else{ }'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|P2_else|P3_empty|')
-        
-
+        self.assertEqual(plyparser.test_tokens_parents('if(true){ }else{ }elif(true){ }'), 'P0_empty|')
+        self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif{ }elif(true){ }'), 'P0_empty|')
+        self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif(true){ }elif(true){ }'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents('if(true){ }if(true){ }elif(true){}'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
 
 if __name__ == '__main__':
     log_file = 'parser_tests.log'

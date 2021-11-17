@@ -327,48 +327,69 @@ def p_compmin(p):
 
 def p_flowctrl(p):
     '''
-    flowctrl : ifblock
+    flowctrl : ifstmt
     '''
     p[0] = p[1]
+
+
+def p_ifstmt(p):
+    '''
+    ifstmt : IF ifblock
+    '''
+    p[0] = p[2]
+
+
+def p_ifstmt_else(p):
+    '''
+    ifstmt : IF ifblock elseblock
+    '''
+    p[2].children.append(p[3])
+    p[3].parent = p[2]
+    p[0] = p[2]
 
 
 def p_if_block(p):
     '''
-    ifblock : IF '(' boolstmt ')' '{' block '}'
-            | IF '(' numstmt ')' '{' block '}'
-            | IF '(' wordstmt ')' '{' block '}'
+    ifblock : condblock
     '''
-    condition = Node('cond', 'cond', [p[3], p[6]])
-    p[0] = Node('if', 'if', [condition])
-    condition.parent = p[0]
-    p[6].parent = condition
-    p[3].parent = condition
+    p[0] = Node('if', 'if', [p[1]])
+    p[1].parent = p[0]
 
 
-def p_ifelse_block(p):
+def p_if_elif_block(p):
     '''
-    ifblock : ifblock ELSE '{' block '}'
+    ifblock : ifblock elifblock
     '''
-    elseblock = Node(p[2], p[2], [p[4]])
-    elseblock.parent = p[1]
+    p[1].children.append(p[2])
+    p[2].parent = p[1]
     p[0] = p[1]
-    p[1].children.append(elseblock)
-    p[4].parent = p[1]
 
 
-def p_ifelif_block(p):
+def p_elif_block(p):
     '''
-    ifblock : ifblock ELIF '(' boolstmt ')' '{' block '}'
-            | ifblock ELIF '(' numstmt ')' '{' block '}'
-            | ifblock ELIF '(' wordstmt ')' '{' block '}'
+    elifblock : ELIF condblock
     '''
-    condition = Node('cond', 'cond', [p[4], p[7]])
-    p[0] = p[1]
-    p[1].children.append(condition)
-    condition.parent = p[1]
-    p[4].parent = condition
-    p[7].parent = condition
-    
+    p[0] = p[2]
+
+
+def p_cond_block(p):
+    '''
+    condblock : '(' boolstmt ')' '{' block '}'
+              | '(' numstmt ')' '{' block '}'
+              | '(' wordstmt ')' '{' block '}'
+    '''
+    p[0] = Node('cond', 'cond', [p[2], p[5]])
+    p[2].parent = p[0]
+    p[5].parent = p[0]
+
+
+def p_else_block(p):
+    '''
+    elseblock : ELSE '{' block '}'
+    '''
+    p[0] = Node(p[1], p[1], [p[3]])
+    p[3].parent = p[0]
+
 
 def p_error(p):
     if p:

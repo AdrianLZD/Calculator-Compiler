@@ -88,16 +88,22 @@ compmin -> EQUALS
          | NOTEQUALS
           
 
-flowctrl -> ifblock                 
+flowctrl -> ifstmt                
           | while compar { block }        -Implementation missing
           | for ( ; ; ){ block }          -Implementation missing
 
-ifblock -> IF ( boolstmt ) { block }
-         | IF ( numstmt ) { block }
-         | IF ( wordstmt ) { block } 
-         | ifblock ELSE { block }
-         | ifblock ELIF ( boolstmt ) { block }
-         | ifblock ELIF ( numstmt ) { block }
-         | ifblock ELIF ( wordstmt ) { block }
+ifstmt -> IF ifblock
+        | IF ifblock elseblock
+
+ifblock -> condblock
+         | ifblock elifblock
+
+elifblock -> ELIF condblock
+
+elseblock -> ELSE { block }
+
+condblock -> ( boolstmt ) { block }
+           | ( numstmt ) { block }
+           | ( wordstmt ) { block } 
 
 printstmt -> ( expr )                     -Implementation missing
