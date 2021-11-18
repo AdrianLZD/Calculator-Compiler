@@ -6,7 +6,6 @@ block -> stmt block
 stmt -> simstmt ;
       | flowctrl                          -Implementation missing
       | printstmt ;                       -Implementation missing
-      | NEWLINE
     
 simstmt -> INT ID
          | INT ID = numstmt
@@ -90,7 +89,7 @@ compmin -> EQUALS
 
 flowctrl -> ifstmt                
           | whilestmt
-          | for ( ; ; ){ block }          -Implementation missing
+          | forstmt          
 
 ifstmt -> IF ifblock
         | IF ifblock elseblock
@@ -103,6 +102,16 @@ elifblock -> ELIF compblock
 elseblock -> ELSE { block }
 
 whilestmt -> WHILE compblock
+
+forstmt -> FOR ( fordeclare ; compar ; forins ) { block }
+
+fordeclare -> INT ID
+            | FLOAT ID
+            | INT ID = numstmt
+            | FLOAT ID = numstmt
+
+forins -> ID + +
+        | ID - -
 
 compblock -> condblock
            | comparblock

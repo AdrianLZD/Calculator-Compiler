@@ -329,6 +329,7 @@ def p_flowctrl_if(p):
     '''
     flowctrl : ifstmt
              | whilestmt
+             | forstmt
     '''
     p[0] = p[1]
 
@@ -389,6 +390,48 @@ def p_whilestmt_condition(p):
     p[2].parent = p[0]
 
 
+def p_for_stmt(p):
+    '''
+    forstmt : FOR '(' fordeclare ';' compar ';' forins ')' '{' block '}'
+    '''
+    condition = Node('cond', 'cond', p[5])
+    p[5].parent = condition
+    p[0] = Node(p[1], p[1], [condition, p[10], p[7]])
+    condition.parent = p[0]
+    p[10].parent = p[0]
+    p[7].parent = p[0]
+
+def p_for_declare_simple(p):
+    '''
+    fordeclare : INT ID
+               | FLOAT ID
+    '''
+    if p[1] == 'int':
+        child = Node('int', 0)
+    elif p[1] == 'float':
+        child = Node('float', 0.0)
+    p[0] = Node(p[1], p[2], [child])
+    child.parent = p[0]
+
+def p_for_declare_value(p):
+    '''
+    fordeclare : INT ID '=' numstmt
+               | FLOAT ID '=' numstmt
+    '''
+    p[0] = Node(p[1], p[2], [p[4]])
+    p[4].parent = p[0]
+    
+
+def p_for_instruction(p):
+    '''
+    forins : ID '+' '+'
+           | ID '-' '-'
+    '''
+    oneNode = Node('int', 1)                # TODO FIX type to match ID type
+    p[0] = Node(p[2], p[2], [p[1], oneNode]) # TODO FIX ID DECLARATION
+    p[1].parent = p[0]
+    oneNode.parent = p[0]
+
 def p_comp_block(p):
     '''
     compblock : condblock
@@ -414,6 +457,7 @@ def p_compar_block(p):
     p[0] = Node('cond', 'cond', [p[2], p[5]])
     p[2].parent = p[0]
     p[5].parent = p[0]
+
 
 def p_error(p):
     if p:
