@@ -122,4 +122,9 @@ condblock -> ( boolstmt ) { block }
 
 comparblock -> ( compar ) { block }
 
-printstmt -> ( expr )                     -Implementation missing
+printstmt -> ( printexpr )          
+
+printexpr -> ID
+           | numstmt
+           | wordstmt
+           | boolstmt

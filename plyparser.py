@@ -2,6 +2,7 @@ import ply.yacc as yacc
 import plylexer
 from plynode import Node
 from ply.lex import LexError
+from plysymboltable import SymbolTable
 
 tokens = plylexer.tokens
 
@@ -11,6 +12,8 @@ precedence = (
     ('left', '^'),
     ('right', 'UMINUS')
 )
+
+master_table = SymbolTable('master', None, {})
 
 
 def eqcomp(a, b):
@@ -47,7 +50,7 @@ def p_block(p):
           |
     '''
     if len(p) == 3 :
-        p[0] = Node('block', 'block', [p[1]])
+        p[0] = Node('block', 'block', [p[1]], None, master_table)
         p[1].parent = p[0]
         for child in p[2].children:
             p[0].children.append(child)
@@ -61,6 +64,17 @@ def p_stmt(p):
          | flowctrl
     '''
     p[0] = p[1]
+
+
+def p_simstmt_assign(p):
+    '''
+    simstmt : INT ID '=' numstmt
+    simstmt : FLOAT ID '=' numstmt
+    simstmt : STRING ID '=' wordstmt
+    simstmt : BOOLEAN ID '=' boolstmt
+    '''
+    p[0] = Node(p[1], p[2], [p[4]])
+    p[4].parent = p[0]
 
 
 def p_simstmt_declaration(p):
@@ -83,16 +97,11 @@ def p_simstmt_declaration(p):
     child.parent =p[0]
 
 
-def p_simstmt_assign(p):
+def p_boolexpr_id(p):
     '''
-    simstmt : INT ID '=' numstmt
-    simstmt : FLOAT ID '=' numstmt
-    simstmt : STRING ID '=' wordstmt
-    simstmt : BOOLEAN ID '=' boolstmt
+    boolexpr : ID
     '''
-    p[0] = Node(p[1], p[2], [p[4]])
-    p[4].parent = p[0]
-
+    p[0] = Node('id', p[1])
 
 def p_numstmt(p):
     '''
@@ -146,7 +155,7 @@ def p_number_id(p):
     '''
     number : ID 
     '''
-    p[0] = p[1] #TODO set value of ID
+    p[0] = Node('id', p[1])
 
 
 def p_number_int(p):
@@ -192,7 +201,6 @@ def p_wordstmt_num(p):
 def p_wordexpr_word(p):
     '''
     wordexpr : WORD
-             | ID
     '''
     word = p[1][1:-1]
     length = len(word)
@@ -214,6 +222,7 @@ def p_wordexpr_concats(p):
              | wordstmt '+' wordstmt
              | wordexpr '+' wordstmt
              | wordstmt '+' wordexpr
+             | ID
     '''
     if len(p) == 4:
         p[0] =  Node('+', '+', [p[1], p[3]])
@@ -221,8 +230,7 @@ def p_wordexpr_concats(p):
         p[1].parent = p[0]
         p[3].parent = p[0]
     else:
-        print("FIX")
-        p[0] = p[1] #TODO Set value of id
+        p[0] = Node('id', p[1])
 
 
 def p_boolstmt(p):
@@ -247,12 +255,20 @@ def p_boolexpr_normal(p):
     p[0] = Node('boolean', eval(p[1].title()))
 
 
+
+
+# # def p_boolexpr_id(p):
+#     '''
+#     boolexpr : ID
+#     '''
+#     p[0] = Node('id', p[1])
+
+
 def p_boolexpr_types(p):
     '''
-    boolexpr : ID
-             | boolcompar
+    boolexpr : boolcompar
     '''
-    p[0] = p[1] # TODO Fix ID declaration
+    p[0] = p[1]
 
 
 def p_boolexpr_compar(p):
@@ -394,9 +410,10 @@ def p_for_stmt(p):
     '''
     forstmt : FOR '(' fordeclare ';' compar ';' forins ')' '{' block '}'
     '''
-    condition = Node('cond', 'cond', p[5])
+    condition = Node('cond', 'cond', [p[5]])
     p[5].parent = condition
-    p[0] = Node(p[1], p[1], [condition, p[10], p[7]])
+    p[0] = Node(p[1], p[1], [p[3], condition, p[10], p[7]])
+    p[3].parent = p[0]
     condition.parent = p[0]
     p[10].parent = p[0]
     p[7].parent = p[0]
@@ -413,6 +430,7 @@ def p_for_declare_simple(p):
     p[0] = Node(p[1], p[2], [child])
     child.parent = p[0]
 
+
 def p_for_declare_value(p):
     '''
     fordeclare : INT ID '=' numstmt
@@ -427,9 +445,10 @@ def p_for_instruction(p):
     forins : ID '+' '+'
            | ID '-' '-'
     '''
-    oneNode = Node('int', 1)                # TODO FIX type to match ID type
-    p[0] = Node(p[2], p[2], [p[1], oneNode]) # TODO FIX ID DECLARATION
-    p[1].parent = p[0]
+    oneNode = Node('int', 1)          
+    idNode = Node('id', p[1])
+    p[0] = Node(p[2], p[2], [idNode, oneNode])
+    idNode.parent = p[0]
     oneNode.parent = p[0]
 
 def p_comp_block(p):
@@ -501,6 +520,7 @@ if __name__ == '__main__':
             #out = res if res == None else res.print_basic_test() + '\n' + res.print()
             #out = res if res == None else res.print()
             print(out)
+            print(master_table.print())
         except LexError:
             print(s + ' is not a valid input')
 

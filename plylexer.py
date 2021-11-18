@@ -27,8 +27,7 @@ tokens = list(keywords.values()) + [
     'NOTEQUALS',
     'GTEQUALS',
     'LSEQUALS',
-    'ID',
-    'NEWLINE'
+    'ID'
 ]
 
 t_ignore = " \t|\n"
