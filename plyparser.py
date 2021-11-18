@@ -62,6 +62,7 @@ def p_stmt(p):
     '''
     stmt : simstmt ';'
          | flowctrl
+         | printstmt ';'
     '''
     p[0] = p[1]
 
@@ -103,11 +104,21 @@ def p_boolexpr_id(p):
     '''
     p[0] = Node('id', p[1])
 
+
 def p_numstmt(p):
     '''
     numstmt : numexpr
     '''
     p[0] = p[1]
+
+
+def p_numstmt_concat_wordstmt(p):
+    '''
+    numstmt : numstmt '+' wordstmt
+    '''
+    p[0] = Node('+', '+', [p[1], p[3]])
+    p[1].parent = p[0]
+    p[3].parent = p[0]
 
 
 def p_numstmt_block(p):
@@ -194,6 +205,7 @@ def p_wordstmt_num(p):
     '''
     wordstmt : '(' numexpr ')'
              | '(' wordexpr ')'
+             | '(' wordstmt ')'
     '''
     p[0] = p[2]
 
@@ -225,7 +237,7 @@ def p_wordexpr_concats(p):
              | ID
     '''
     if len(p) == 4:
-        p[0] =  Node('+', '+', [p[1], p[3]])
+        p[0] = Node('+', '+', [p[1], p[3]])
         p[0] = Node(p[2], p[2], [p[1], p[3]])
         p[1].parent = p[0]
         p[3].parent = p[0]
@@ -243,6 +255,7 @@ def p_boolstmt(p):
 def p_boolstmt_block(p):
     '''
     boolstmt : '(' boolexpr ')'
+             | '(' boolstmt ')'
     '''
     p[0] = p[2]
 
@@ -253,15 +266,6 @@ def p_boolexpr_normal(p):
              | FALSE
     '''
     p[0] = Node('boolean', eval(p[1].title()))
-
-
-
-
-# # def p_boolexpr_id(p):
-#     '''
-#     boolexpr : ID
-#     '''
-#     p[0] = Node('id', p[1])
 
 
 def p_boolexpr_types(p):
@@ -418,6 +422,7 @@ def p_for_stmt(p):
     p[10].parent = p[0]
     p[7].parent = p[0]
 
+
 def p_for_declare_simple(p):
     '''
     fordeclare : INT ID
@@ -451,12 +456,14 @@ def p_for_instruction(p):
     idNode.parent = p[0]
     oneNode.parent = p[0]
 
+
 def p_comp_block(p):
     '''
     compblock : condblock
               | comparblock
     '''
     p[0] = p[1]
+
 
 def p_cond_block(p):
     '''
@@ -476,6 +483,31 @@ def p_compar_block(p):
     p[0] = Node('cond', 'cond', [p[2], p[5]])
     p[2].parent = p[0]
     p[5].parent = p[0]
+
+
+def p_printstmt(p):
+    '''
+    printstmt : PRINT '(' printexpr ')'
+    '''
+    p[0] = Node(p[1], p[1], [p[3]])
+    p[3].parent = p[0]
+
+
+def p_printexpr(p):
+    '''
+    printexpr : wordstmt
+              | numstmt
+              | boolstmt
+              | compar
+    '''
+    p[0] = p[1]
+
+
+def p_printexpr_id(p):
+    '''
+    printexpr : ID
+    '''
+    p[0] = Node('id', p[1])
 
 
 def p_error(p):

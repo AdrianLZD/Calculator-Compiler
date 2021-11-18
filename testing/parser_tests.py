@@ -37,6 +37,7 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('float _a;'), 'block|_a|0.0|')
         self.assertEqual(plyparser.test_tokens('float a = 123124124'), None)
         self.assertEqual(plyparser.test_tokens('float a = c;'), 'block|a|c|')
+        self.assertEqual(plyparser.test_tokens('float b = ((((3))));'), 'block|b|3|')
 
 
     def test_strings_declaration(self):
@@ -68,6 +69,7 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('string a = \'\\\'\';'), "block|a|'|")
         self.assertEqual(plyparser.test_tokens('string a = \'\\\"\';'), 'block|a|"|')
         self.assertEqual(plyparser.test_tokens('string a = c;'), 'block|a|c|')
+        self.assertEqual(plyparser.test_tokens('string b = (((("3"))));'), 'block|b|3|')
         
 
     def test_booleans_declaration(self):
@@ -86,6 +88,7 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('boolean oas = false'), None)
         self.assertEqual(plyparser.test_tokens('boolean oas = (false);'), 'block|oas|False|')
         self.assertEqual(plyparser.test_tokens('boolean oas = a;'), 'block|oas|a|')
+        self.assertEqual(plyparser.test_tokens('boolean b = ((((true))));'), 'block|b|True|')
 
 
     def test_comparisons_number_as_declaration(self):
@@ -319,6 +322,7 @@ class TestDeclarations(unittest.TestCase):
             'while(true){ }while(true){ }'), 
             'P0_block|P1_while|P2_cond|P3_True|P3_empty|P1_while|P2_cond|P3_True|P3_empty|')
 
+
     def test_for_blocks(self):
         print('\n--------FOR BLOCKS--------')
         self.assertEqual(plyparser.test_tokens_parents(
@@ -340,6 +344,23 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens_parents('for(int i = 0; ;i++) { }'), 'P0_empty|')
         self.assertEqual(plyparser.test_tokens_parents('for(float i = 0; i<2 ;i) { }'), 'P0_empty|')
         self.assertEqual(plyparser.test_tokens_parents('for(i = 0; i<2 ;i++) { }'), 'P0_empty|')
+
+
+    def test_print(self):
+        print('\n--------PRINT STATEMENTS--------')
+        self.assertEqual(plyparser.test_tokens('print(1);'), 'block|print|1|')
+        self.assertEqual(plyparser.test_tokens('print(a);'), 'block|print|a|')
+        self.assertEqual(plyparser.test_tokens('print("hola");'), 'block|print|hola|')
+        self.assertEqual(plyparser.test_tokens('print(1.0);'), 'block|print|1.0|')
+        self.assertEqual(plyparser.test_tokens('print(true);'), 'block|print|True|')
+        self.assertEqual(plyparser.test_tokens('print(1 + 2);'), 'block|print|+|1|2|')
+        self.assertEqual(plyparser.test_tokens('print((1) + "asd");'), 'block|print|+|1|asd|')
+        self.assertEqual(plyparser.test_tokens('print("1" + "asd");'), 'block|print|+|1|asd|')
+        self.assertEqual(plyparser.test_tokens('print((((1))) + "asd");'), 'block|print|+|1|asd|')
+        self.assertEqual(plyparser.test_tokens('print("asd" + (2));'), 'block|print|+|asd|2|')
+        self.assertEqual(plyparser.test_tokens('print(1 < 2);'), 'block|print|<|1|2|')
+        self.assertEqual(plyparser.test_tokens('print(1 == 2);'), 'block|print|==|1|2|')
+        self.assertEqual(plyparser.test_tokens('print(1 = 2);'), 'empty|')
         
 
 
