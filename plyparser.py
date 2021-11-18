@@ -351,8 +351,7 @@ def p_ifstmt_else(p):
 
 def p_if_block_condition(p):
     '''
-    ifblock : condblock
-            | comparblock
+    ifblock : compblock
     '''
     p[0] = Node('if', 'if', [p[1]])
     p[1].parent = p[0]
@@ -369,7 +368,7 @@ def p_if_elif_block(p):
 
 def p_elif_block(p):
     '''
-    elifblock : ELIF condblock
+    elifblock : ELIF compblock
     '''
     p[0] = p[2]
 
@@ -384,23 +383,18 @@ def p_else_block(p):
 
 def p_whilestmt_condition(p):
     '''
-    whilestmt : WHILE condblock
-              | WHILE comparblock
+    whilestmt : WHILE compblock
     '''
     p[0] = Node(p[1], p[1], [p[2]])
     p[2].parent = p[0]
 
 
-# def p_whilestmt_comparison(p):
-#     '''
-#     whilestmt : WHILE comparblock
-#     '''
-#     condition = Node('cond', 'cond', [p[3]])
-#     p[3].parent = condition
-#     p[0] = Node(p[1], p[1], [condition, p[6]])
-#     condition.parent = p[0]
-#     p[6].parent = p[0]
-
+def p_comp_block(p):
+    '''
+    compblock : condblock
+              | comparblock
+    '''
+    p[0] = p[1]
 
 def p_cond_block(p):
     '''

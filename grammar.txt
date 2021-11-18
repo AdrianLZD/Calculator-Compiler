@@ -89,21 +89,28 @@ compmin -> EQUALS
           
 
 flowctrl -> ifstmt                
-          | while compar { block }        -Implementation missing
+          | whilestmt
           | for ( ; ; ){ block }          -Implementation missing
 
 ifstmt -> IF ifblock
         | IF ifblock elseblock
 
-ifblock -> condblock
+ifblock -> compblock
          | ifblock elifblock
 
-elifblock -> ELIF condblock
+elifblock -> ELIF compblock
 
 elseblock -> ELSE { block }
+
+whilestmt -> WHILE compblock
+
+compblock -> condblock
+           | comparblock
 
 condblock -> ( boolstmt ) { block }
            | ( numstmt ) { block }
            | ( wordstmt ) { block } 
+
+comparblock -> ( compar ) { block }
 
 printstmt -> ( expr )                     -Implementation missing

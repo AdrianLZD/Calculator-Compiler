@@ -235,17 +235,31 @@ class TestDeclarations(unittest.TestCase):
 
     def test_if_nestedblocks(self):
         print('\n--------NESTED IF BLOCKS--------')
-        self.assertEqual(plyparser.test_tokens_parents('if (true) { if (true) { int a;}}'), 'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_if|P5_cond|P6_True|P6_block|P7_a|P8_0|')
-        self.assertEqual(plyparser.test_tokens_parents('if true { if true { int a;}}'), 'P0_empty|')
-        self.assertEqual(plyparser.test_tokens_parents('if (true) { if (true) {}}'), 'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_if|P5_cond|P6_True|P6_empty|')
-        self.assertEqual(plyparser.test_tokens_parents('if (true) { if (true) { int a;} int b = 0;}'), 'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_if|P5_cond|P6_True|P6_block|P7_a|P8_0|P4_b|P5_0|')
-        self.assertEqual(plyparser.test_tokens_parents('if (true) { if (true) { int a;} } int b = 0;'), 'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_if|P5_cond|P6_True|P6_block|P7_a|P8_0|P1_b|P2_0|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if (true) { if (true) { int a;}}'),
+            'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_if|P5_cond|P6_True|P6_block|P7_a|P8_0|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if true { if true { int a;}}'), 
+            'P0_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if (true) { if (true) {}}'), 
+            'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_if|P5_cond|P6_True|P6_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if (true) { if (true) { int a;} int b = 0;}'), 
+            'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_if|P5_cond|P6_True|P6_block|P7_a|P8_0|P4_b|P5_0|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if (true) { if (true) { int a;} } int b = 0;'), 
+            'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_if|P5_cond|P6_True|P6_block|P7_a|P8_0|P1_b|P2_0|')
 
 
     def test_if_else_blocks(self):
         print('\n--------IF ELSE BLOCKS--------')
-        self.assertEqual(plyparser.test_tokens_parents('if (true) { } else { }'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_else|P3_empty|')
-        self.assertEqual(plyparser.test_tokens_parents('if (true) { int b; } else { int a; }'), 'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_b|P5_0|P2_else|P3_block|P4_a|P5_0|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if (true) { } else { }'), 
+            'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_else|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if (true) { int b; } else { int a; }'), 
+            'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_b|P5_0|P2_else|P3_block|P4_a|P5_0|')
         self.assertEqual(plyparser.test_tokens_parents('''
                                                         if (true) {
                                                             int a = 1;
@@ -257,27 +271,49 @@ class TestDeclarations(unittest.TestCase):
                                                             }
                                                         }
                                                         int d = 4;
-                                                       ''')
-        , 'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_a|P5_1|P2_else|P3_block|P4_if|P5_cond|P6_1|P6_block|P7_b|P8_2|P5_else|P6_block|P7_c|P8_3|P1_d|P2_4|')
+                                                       '''),
+           'P0_block|P1_if|P2_cond|P3_True|P3_block|P4_a|P5_1|P2_else|P3_block|P4_if|P5_cond|P6_1|P6_block|P7_b|P8_2|P5_else|P6_block|P7_c|P8_3|P1_d|P2_4|')
         
 
     def test_if_elif_blocks(self):
         print('\n--------IF ELIF BLOCKS--------')
-        self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif(true){ }'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
-        self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif(true){ }else{ }'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|P2_else|P3_empty|')
-        self.assertEqual(plyparser.test_tokens_parents('if(true){ }else{ }elif(true){ }'), 'P0_empty|')
-        self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif{ }elif(true){ }'), 'P0_empty|')
-        self.assertEqual(plyparser.test_tokens_parents('if(true){ }elif(true){ }elif(true){ }'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
-        self.assertEqual(plyparser.test_tokens_parents('if(true){ }if(true){ }elif(true){}'), 'P0_block|P1_if|P2_cond|P3_True|P3_empty|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if(true){ }elif(true){ }'), 
+            'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if(true){ }elif(true){ }else{ }'), 
+            'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|P2_else|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if(true){ }else{ }elif(true){ }'), 
+            'P0_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if(true){ }elif{ }elif(true){ }'), 
+            'P0_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if(true){ }elif(true){ }elif(true){ }'), 
+            'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if(true){ }if(true){ }elif(true){}'), 
+            'P0_block|P1_if|P2_cond|P3_True|P3_empty|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_True|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'if(true){ }elif(1 > 2){}'), 
+            'P0_block|P1_if|P2_cond|P3_True|P3_empty|P2_cond|P3_>|P4_1|P4_2|P3_empty|')
+
 
     def test_while_blocks(self):
         print('\n--------WHILE BLOCKS--------')
         self.assertEqual(plyparser.test_tokens_parents('while(true){ int a = 0; }'), 'P0_block|P1_while|P2_cond|P3_True|P3_block|P4_a|P5_0|')
         self.assertEqual(plyparser.test_tokens_parents('while(){ int a = 0; }'), 'P0_empty|')
         self.assertEqual(plyparser.test_tokens_parents('while(true)'), None)
-        self.assertEqual(plyparser.test_tokens_parents('while(1 > 20){  }'), 'P0_block|P1_while|P2_cond|P3_>|P4_1|P4_20|P3_empty|')
-        self.assertEqual(plyparser.test_tokens_parents('while((1 + 20) > 2){  }'), 'P0_block|P1_while|P2_cond|P3_>|P4_+|P5_1|P5_20|P4_2|P3_empty|')
-        self.assertEqual(plyparser.test_tokens_parents('while(true){ }while(true){ }'), 'P0_block|P1_while|P2_cond|P3_True|P3_empty|P1_while|P2_cond|P3_True|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'while(1 > 20){  }'), 
+            'P0_block|P1_while|P2_cond|P3_>|P4_1|P4_20|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'while((1 + 20) > 2){  }'), 
+            'P0_block|P1_while|P2_cond|P3_>|P4_+|P5_1|P5_20|P4_2|P3_empty|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'while(true){ }while(true){ }'), 
+            'P0_block|P1_while|P2_cond|P3_True|P3_empty|P1_while|P2_cond|P3_True|P3_empty|')
         
 
 
