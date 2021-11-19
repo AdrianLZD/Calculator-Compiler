@@ -1,10 +1,9 @@
 class Node:
-    def __init__(self, type, value, children=[], parent=None, scope=None):
+    def __init__(self, type, value, children=[], parent=None):
         self.type = type
         self.value = value
         self.children = children
         self.parent = parent
-        self.scope = scope
 
     def print(self, offset: str = ''):
         toStr = offset + 't: ' + str(self.type) + '\n'

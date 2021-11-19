@@ -1,9 +1,8 @@
 import ply.yacc as yacc
 import plylexer
 import logger
-from plynode import Node
+from node import Node
 from ply.lex import LexError
-from plysymboltable import SymbolTable
 
 tokens = plylexer.tokens
 
@@ -13,8 +12,6 @@ precedence = (
     ('left', '^'),
     ('right', 'UMINUS')
 )
-
-master_table = SymbolTable('master', None, {})
 
 
 def eqcomp(a, b):
@@ -51,7 +48,7 @@ def p_block(p):
           |
     '''
     if len(p) == 3 :
-        p[0] = Node('block', 'block', [p[1]], None, master_table)
+        p[0] = Node('block', 'block', [p[1]], None)
         p[1].parent = p[0]
         for child in p[2].children:
             p[0].children.append(child)
