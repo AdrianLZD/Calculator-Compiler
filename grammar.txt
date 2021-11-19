@@ -4,8 +4,8 @@ block -> stmt block
        |
 
 stmt -> simstmt ;
-      | flowctrl                          -Implementation missing
-      | printstmt ;                       -Implementation missing
+      | flowctrl                          
+      | printstmt ;                       
     
 simstmt -> INT ID
          | INT ID = numstmt
@@ -15,7 +15,9 @@ simstmt -> INT ID
          | STRING ID = wordstmt
          | BOOLEAN ID
          | BOOLEAN ID = boolstmt
-         | ID = expr                      -Implementation missing
+         | ID = numstmt
+         | ID = wordstmt
+         | ID = boolstmt
 
 numstmt -> numexpr 
          | ( numexpr )
