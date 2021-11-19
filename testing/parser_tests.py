@@ -8,7 +8,7 @@ import datetime
 from ply.lex import LexError
 
 
-class TestDeclarations(unittest.TestCase):
+class ParserTests(unittest.TestCase):
 
     def test_integers_declaration(self):
         print('\n--------INTEGERS DECLARATION--------')
@@ -380,7 +380,7 @@ class TestDeclarations(unittest.TestCase):
 
 if __name__ == '__main__':
     log_file = 'parser_tests.log'
-    sys.stdout = open(log_file, 'a')
+    sys.stdout = open(log_file, 'w')
     print('Last time tested:\n' + str(datetime.datetime.now()) + '\n')
     unittest.main()
     sys.stdout.close()
