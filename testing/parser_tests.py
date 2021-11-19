@@ -363,6 +363,20 @@ class TestDeclarations(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('print(1 = 2);'), 'empty|')
         
 
+    def test_id_assign(self):
+        print('\n--------ID ASSIGNMENT--------')
+        self.assertEqual(plyparser.test_tokens('a = 2;'), 'block|a|2|')
+        self.assertEqual(plyparser.test_tokens('_a = 2;'), 'block|_a|2|')
+        self.assertRaises(LexError, plyparser.test_tokens, '$$$ = 0;')
+        self.assertEqual(plyparser.test_tokens('a = ((((2))));'), 'block|a|2|')
+        self.assertEqual(plyparser.test_tokens('a = (2 + 2 * (3 * 4));'), 'block|a|+|2|*|2|*|3|4|')
+        self.assertEqual(plyparser.test_tokens('a = true;'), 'block|a|True|')
+        self.assertEqual(plyparser.test_tokens('a = true and false;'), 'block|a|and|True|False|')
+        self.assertEqual(plyparser.test_tokens('a = (1 > 2);'), 'block|a|>|1|2|')
+        self.assertEqual(plyparser.test_tokens('a = "true";'), 'block|a|true|')
+        self.assertEqual(plyparser.test_tokens('a = "true" + "false";'), 'block|a|+|true|false|')
+        self.assertEqual(plyparser.test_tokens('a = (1) + "asd";'), 'block|a|+|1|asd|')
+
 
 if __name__ == '__main__':
     log_file = 'parser_tests.log'

@@ -1,5 +1,6 @@
 import ply.yacc as yacc
 import plylexer
+import logger
 from plynode import Node
 from ply.lex import LexError
 from plysymboltable import SymbolTable
@@ -70,20 +71,20 @@ def p_stmt(p):
 def p_simstmt_assign(p):
     '''
     simstmt : INT ID '=' numstmt
-    simstmt : FLOAT ID '=' numstmt
-    simstmt : STRING ID '=' wordstmt
-    simstmt : BOOLEAN ID '=' boolstmt
+            | FLOAT ID '=' numstmt
+            | STRING ID '=' wordstmt
+            | BOOLEAN ID '=' boolstmt
     '''
-    p[0] = Node(p[1], p[2], [p[4]])
+    p[0] = Node("d"+p[1], p[2], [p[4]])
     p[4].parent = p[0]
 
 
 def p_simstmt_declaration(p):
     '''
     simstmt : INT ID
-    simstmt : FLOAT ID
-    simstmt : STRING ID
-    simstmt : BOOLEAN ID
+            | FLOAT ID
+            | STRING ID
+            | BOOLEAN ID
     '''
     if p[1] == 'int':
         child = Node('int', 0)
@@ -94,8 +95,18 @@ def p_simstmt_declaration(p):
     elif p[1] == 'boolean':
         child = Node('boolean', False)
     
-    p[0] = Node(p[1], p[2], [child])
+    p[0] = Node("d"+p[1], p[2], [child])
     child.parent =p[0]
+
+
+def p_simstmt_id(p):
+    '''
+    simstmt : ID '=' numstmt
+            | ID '=' wordstmt
+            | ID '=' boolstmt
+    '''
+    p[0] = Node('id', p[1], [p[3]])
+    p[3].parent = p[0]
 
 
 def p_boolexpr_id(p):
@@ -513,9 +524,9 @@ def p_printexpr_id(p):
 def p_error(p):
     if p:
         print(p)
-        print("Syntax error at line '%s' character '%s'" %(p.lineno, p.lexpos))
+        logger.error("[!] Syntax error at line '%s' character '%s'" %(p.lineno, p.lexpos))
     else:
-        print("Syntax error at EOF")
+        logger.error("[!] Syntax error at EOF")
 
 
 def test_tokens(arg):
@@ -545,14 +556,12 @@ if __name__ == '__main__':
             break
         if not s:
             continue
-
         try:
             res = yacc.parse(s)
             out = res if res == None else res.print_parent_test() + '\n' + res.print()
             #out = res if res == None else res.print_basic_test() + '\n' + res.print()
             #out = res if res == None else res.print()
             print(out)
-            print(master_table.print())
         except LexError:
             print(s + ' is not a valid input')
 
