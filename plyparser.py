@@ -544,6 +544,10 @@ def test_tokens_parents(arg):
         print('[!] No arguments where received')
 
 
+def parse_input(input):
+    return yacc.parse(input)
+
+
 parser = yacc.yacc()
 if __name__ == '__main__':
     while True:

@@ -1,0 +1,8 @@
+int a = 12;
+int b = 34;
+int c = a + b;
+if (c < 124214) {
+    int d = a + c;
+    d = 0;
+    f = 0;
+}
