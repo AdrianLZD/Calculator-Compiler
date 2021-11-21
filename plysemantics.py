@@ -170,6 +170,15 @@ def evaluate_if(node: Node, parent: SymbolTable, blocks: int):
             return create_block_table(child.children[1], parent, blocks)
 
 
+def test_input(input):
+    create_symbols_table(input)
+    return 'good'
+
+def test_input_file(file):
+    input = file_to_str(file)
+    test_input(input)
+
+
 if __name__ == '__main__':
     input = file_to_str('input/basic.txt')
     try:

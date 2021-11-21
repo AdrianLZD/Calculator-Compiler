@@ -1,7 +1,7 @@
 import sys
 import datetime
 import parser_tests
-import scope_tests
+import semantics_tests
 import unittest
 
 
@@ -13,7 +13,7 @@ if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromModule(parser_tests)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
-    suite = unittest.TestLoader().loadTestsFromModule(scope_tests)
+    suite = unittest.TestLoader().loadTestsFromModule(semantics_tests)
     unittest.TextTestRunner(verbosity=2).run(suite)
 
     sys.stdout.close()
