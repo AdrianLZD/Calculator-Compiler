@@ -1,0 +1,18 @@
+int a = 12;
+int b = 34;
+int c = a + b;
+if (c > 124214) {
+    int d = a + c;
+
+} elif (false) {
+
+    int d = 123123;
+} else {
+    int d = 0;
+
+    if (d < 1) {
+        int e = 0;
+        int asd = 123;
+    }
+}
+

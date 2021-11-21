@@ -520,10 +520,12 @@ def p_printexpr_id(p):
 
 def p_error(p):
     if p:
-        print(p)
-        logger.error("[!] Syntax error at line '%s' character '%s'" %(p.lineno, p.lexpos))
+        logger.error("[!] Syntax Error.")
+        logger.info("[?] Illegal character: " + str(p))
+        raise SyntaxError('Illegal character.')
     else:
-        logger.error("[!] Syntax error at EOF")
+        logger.error("[!] Syntax error at EOF: A bracket or semicolon is missing.")
+        raise SyntaxError('A bracket or semicolon is missing.')
 
 
 def test_tokens(arg):
