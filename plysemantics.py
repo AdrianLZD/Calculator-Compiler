@@ -45,8 +45,12 @@ var_cast = {
 }
 
 flowctrls = {
-    'if' : 'if'
+    'if' : 'if',
+    'for' : 'for',
+    'while' : 'while'
 }
+
+toPrint = ''
 
 
 def file_to_str(file):
@@ -67,9 +71,10 @@ def create_symbols_table(input):
     print(parse_tree.print())
     symbol_table = SymbolTable('', None, {})
     try:
-        symbol_table = create_block_table(parse_tree, symbol_table, 1)
+        symbol_table = create_block_table(parse_tree, symbol_table, 'm')
     except NameError as e:
-        pass
+        exit(0)
+
     return symbol_table
 
 
@@ -79,80 +84,45 @@ def create_block_table(node: Node, parent: SymbolTable, id: int):
     table = SymbolTable(id_prefix + str(id), parent, {})
     for child in node.children:
         if child.type in var_declare:
-            available = False
-            if not (child.value in table.children) or search_in_parent(child.value, parent, False) == None:
-                available = True
-
-            if available == True:
-                table.children[child.value] = {'type': var_declare[child.type], 'value': evaluate(child.children[0], table)}
-            else:
+            ref_type = search_variable(child.value, table, False)
+            if ref_type != None:
                 logger.error('[!] Semantic error.')
                 logger.info('[?] Variable previously defined: ' + str(child.value) + '.')
                 raise NameError("The variable " + child.value + " had already been defined.")
+            
+            if child.children[0].type == 'id':
+                assign_type = search_variable(child.children[0].value, table)
+                if var_declare[child.type] != assign_type:
+                    logger.error('[!] Semantic error.')
+                    logger.info('[?] Can not assign a "' + assign_type + '" to a "' + var_declare[child.type] + '".')
+                    raise NameError("Incompatible assignment.")
 
+            elif child.children[0].type in comparators:
+                check_compar_types(child.children[0], table)
+
+            table.children[child.value] = {'type': var_declare[child.type]}
+            
         elif child.type in flowctrls:
             child_blocks += 1
             if child.type == 'if':
-                table.children[child.value] = evaluate_if(child, table, child_blocks)
+                block_if(child, table, child_blocks)
+            elif child.type == 'for':
+                block_for(child, table, child_blocks)
+            elif child.type == 'while':
+                block_while(child, table, child_blocks)
                 
         elif child.type == 'id':
-            idData = search_in_parent(child.value, table)
-            table.children[child.value] = {'type' :idData[0], 'value': evaluate(child.children[0], table)}
+            id_data = search_variable(child.value, table)
+            table.children[child.value] = {'type' :id_data[0]}
 
     return table
 
-# Evaluates an instruction
-def evaluate(node: Node, scope : SymbolTable):
-    if node.type in operators:
-        return operators[node.type]( 
-            evaluate(node.children[0], scope), 
-            evaluate(node.children[1], scope) )
-
-    elif node.type in var_types:
-        return var_cast[node.type](node.value)
-
-    elif node.type == 'id':
-        if node.value in scope.children:
-            valType = scope.children[node.value]['type']
-            if valType == 'boolean' or valType == 'string':
-                return scope.children[node.value]['value']
-            else:
-                return var_cast[valType](scope.children[node.value]['value'])
-        else:
-            return search_in_parent(node.value, scope.parent)[1]
-
-    elif node.type == 'cond':
-        return evaluate(node.children[0], scope)
-
-    elif node.type in comparators:
-        childs = {}
-        for i,child in enumerate(node.children):
-            if child.type == 'id':
-                nodeData = search_in_parent(child.value, scope)
-                childs[i] = Node(nodeData[0], nodeData[1])
-            else:
-                childs[i] = child
-
-        if childs[0].type in ['boolean', 'string'] or childs[1].type in ['boolean', 'string']:
-            logger.error('[!] Semantic error.')
-            logger.info('[?] Comparison "' + node.type + '" not supported between "' + childs[0].type + '" and "' + childs[1].type + '".')
-            raise NameError("The variable " + child.value + " had already been defined.")
-
-        return comparators[node.type](
-            evaluate(childs[0], scope),
-            evaluate(childs[1], scope) )
-
-
-# Retrieves the type and value of a variable
-def search_in_parent(id : string, parent: SymbolTable, raiseException = True):
+# Retrieves the type of a variable
+def search_variable(id : string, parent: SymbolTable, raiseException = True):
     if id in parent.children:
-        valType = parent.children[id]['type']
-        if valType == 'boolean' or valType == 'string':
-            return [parent.children[id]['type'], parent.children[id]['value']]
-        else:
-            return [parent.children[id]['type'], var_cast[valType](parent.children[id]['value'])]
+        return parent.children[id]['type']
     elif parent.parent != None:
-        return search_in_parent(id, parent.parent)
+        return search_variable(id, parent.parent, raiseException)
     else:
         if raiseException == True:
             logger.error('[!] Semantic error.')
@@ -162,13 +132,67 @@ def search_in_parent(id : string, parent: SymbolTable, raiseException = True):
             return None
 
 
-def evaluate_if(node: Node, parent: SymbolTable, blocks: int):
-    for child in node.children:
-        if child.type == 'else':
-            return create_block_table(child.children[0], parent, blocks)
-        elif evaluate(child, parent):
-            return create_block_table(child.children[1], parent, blocks)
+def check_compar_types(node: Node, scope: SymbolTable):
+    child_types = [None, None]
+    for i, child in enumerate(node.children):
+        if child.type == 'id':
+            child_types[i] = search_variable(child.value, scope)
+        elif child.type in comparators:
+            child_types[i] = check_compar_types(child, scope)
+        else:
+            child_types[i] = child.type
 
+    if child_types[0] == 'string' or child_types[1] == 'string':
+        logger.error('[!] Semantic error.')
+        logger.info('[?] Can not use "' + node.type +'" with strings.')
+        raise NameError('Incompatible comparison.')
+
+    return True
+
+def block_if(node: Node, parent: SymbolTable, blocks: int):
+    for i, child in enumerate(node.children):
+        if child.type == 'else':
+            node_to_use = child.children[0]
+        else:
+            check_compar_types(child, parent)
+            node_to_use = child.children[1]
+            
+        block_id = str(i) + child.value
+        parent.children['if' + str(blocks) + block_id] = create_block_table(node_to_use, parent, block_id)
+        blocks += 1
+
+
+def block_for(node: Node, parent: SymbolTable, blocks: int):
+    id_prefix = parent.id + '.' if parent.id != '' else parent.id
+    table = SymbolTable(id_prefix + str(blocks) + 'for', parent, {})
+    parent.children['for' + str(blocks)] = table
+    # Declaration
+    declare_child = node.children[0]
+    table.children[declare_child.value] = {'type': var_declare[declare_child.type]}
+    # Condition
+    check_compar_types(node.children[1], table)
+    # Instruction
+    ins_type = search_variable(node.children[3].children[0].value, table)
+    if not ins_type in ['int', 'float']:
+        logger.error('[!] Semantic error.')
+        logger.info('[?] Can not use a "' + ins_type + '" in a "for" declaration.')
+        raise NameError('Incompatible expression.')
+    #Create block
+    parent.children['for' + str(blocks)].children[declare_child.value] = {'type': var_declare[declare_child.type]}
+    child_block = create_block_table(node.children[2], parent, blocks)
+    parent.children['for' + str(blocks)].children.update(child_block.children)
+    child_block.parent = parent
+
+
+def block_while(node: Node, parent: SymbolTable, blocks: int):
+    #Check comparison
+    if node.children[0].children[0].type in comparators:
+        check_compar_types(node.children[0].children[0], parent)
+        print(node.children[0].children[0].print())
+    
+    #Create block
+    parent.children['while' + str(blocks)] = create_block_table(node.children[0].children[1], parent, 1)
+    pass
 
 def test_input(input):
     create_symbols_table(input)

@@ -11,7 +11,7 @@ class SymbolTable:
             if type(child) == SymbolTable:
                 toStr += offset + '\n' + child.print(offset + '    ')
             else:
-                toStr += '\n' + offset + key + ': ' + str(child)
+                toStr += '\n' + offset + '    ' + key + ': ' + str(child)
 
         return toStr
 

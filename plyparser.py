@@ -322,7 +322,7 @@ def p_comparexpr(p):
     '''
     comparexpr : numstmt compall boolstmt
                | boolstmt compall numstmt
-               | wordstmt compall wordstmt
+               | wordstmt compmin wordstmt
                | numstmt compall numstmt
                | comparexpr compall comparexpr
                | boolstmt compall boolstmt
@@ -440,7 +440,7 @@ def p_for_declare_simple(p):
         child = Node('int', 0)
     elif p[1] == 'float':
         child = Node('float', 0.0)
-    p[0] = Node(p[1], p[2], [child])
+    p[0] = Node('d' + p[1], p[2], [child])
     child.parent = p[0]
 
 
@@ -449,7 +449,7 @@ def p_for_declare_value(p):
     fordeclare : INT ID '=' numstmt
                | FLOAT ID '=' numstmt
     '''
-    p[0] = Node(p[1], p[2], [p[4]])
+    p[0] = Node('d' + p[1], p[2], [p[4]])
     p[4].parent = p[0]
     
 

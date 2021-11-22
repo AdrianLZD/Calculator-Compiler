@@ -101,9 +101,10 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('boolean a = (1 >= 2);'), 'block|a|>=|1|2|') #False
         self.assertEqual(plyparser.test_tokens('boolean b = (1 <= 1);'), 'block|b|<=|1|1|') #True
         self.assertEqual(plyparser.test_tokens('boolean a = (1 >= 1);'), 'block|a|>=|1|1|') #True
-        self.assertEqual(plyparser.test_tokens('boolean a = (1 == true);'), 'block|a|==|1|True|') #True
+        self.assertEqual(plyparser.test_tokens('boolean a = (1.0 == true);'), 'block|a|==|1.0|True|') #True
         self.assertEqual(plyparser.test_tokens('boolean a = (0 == false);'), 'block|a|==|0|False|') #True
         self.assertEqual(plyparser.test_tokens('boolean a = (2 == true);'), 'block|a|==|2|True|') #False
+        self.assertEqual(plyparser.test_tokens('boolean a = (0 > false);'), 'block|a|>|0|False|') #True
         # Floating and Integers
         self.assertEqual(plyparser.test_tokens('boolean a = (1.0 == 1);'), 'block|a|==|1.0|1|') #True
         self.assertEqual(plyparser.test_tokens('boolean a = (1 != 1.0);'), 'block|a|!=|1|1.0|') #False
@@ -120,16 +121,22 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('boolean a = ("1 " == "1");'), 'block|a|==|1 |1|') #False
         self.assertEqual(plyparser.test_tokens('boolean a = ("1 " != "1");'), 'block|a|!=|1 |1|') #True
         self.assertEqual(plyparser.test_tokens('boolean a = ("hola" == "hola");'), 'block|a|==|hola|hola|') #True
-        self.assertEqual(plyparser.test_tokens('boolean a = ("12" > "1");'), 'block|a|>|12|1|') #None
-        self.assertEqual(plyparser.test_tokens('boolean a = ("1" < "12");'), 'block|a|<|1|12|') #None
-        self.assertEqual(plyparser.test_tokens('boolean b = ("1" <= "2");'), 'block|b|<=|1|2|') #None
-        self.assertEqual(plyparser.test_tokens('boolean a = ("1" >= "0");'), 'block|a|>=|1|0|') #None
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("12" > "1");'), #None
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("12" => "1");'), #None
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("1" < "12");'), #None
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean b = ("1" <= "2");'), #None
+        self.assertEqual(plyparser.test_tokens('boolean a = ("1" >= true);'), 'block|a|>=|1|True|') #None
         self.assertEqual(plyparser.test_tokens('boolean a = (true == "1");'), 'block|a|==|True|1|') #False
         self.assertEqual(plyparser.test_tokens('boolean a = ("trues" == true);'), 'block|a|==|trues|True|') #False
         self.assertEqual(plyparser.test_tokens('boolean a = ("true" == true);'), 'block|a|==|true|True|') #False
         self.assertEqual(plyparser.test_tokens('boolean a = ("" == true);'), 'block|a|==||True|') #False
         self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("true" == 123);') 
-        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = (123.0 == "123");')
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = (123.0 != "123");')
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("true" > 123);') 
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = (123.0 < "123");')
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("true" >= 123);') 
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = (123.0 and "123");')
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = \'(123.0 and "123")\';')
 
 
     def test_comparisons_boolean_as_declaration(self):
@@ -199,11 +206,14 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens("boolean a = true or false;"), 'block|a|or|True|False|')
         self.assertEqual(plyparser.test_tokens('boolean a = (true and false) or (true or true);'), 'block|a|or|and|True|False|or|True|True|')
         self.assertEqual(plyparser.test_tokens('boolean a = (true and false) or (1);'), 'block|a|or|and|True|False|1|')
-        self.assertEqual(plyparser.test_tokens('boolean a = 0 or 1;'), 'block|a|or|0|1|')
-        self.assertEqual(plyparser.test_tokens('boolean a = (0) or (1);'), 'block|a|or|0|1|')
+        self.assertEqual(plyparser.test_tokens('boolean a = 0 or 1.0;'), 'block|a|or|0|1.0|')
+        self.assertEqual(plyparser.test_tokens('boolean a = (((0))) or (1);'), 'block|a|or|0|1|')
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = "as" or (1);')
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("as") or "asd";')
+        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = 1.0 or "asd";')
         self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("as") or (1);')
         self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = (1) or (1)')
-        self.assertEqual(plyparser.test_tokens('boolean a = 0 or true or false and 1;'), 'block|a|or|0|or|True|and|False|1|')
+        self.assertEqual(plyparser.test_tokens('boolean a = 0.0 or true or false and 1;'), 'block|a|or|0.0|or|True|and|False|1|')
 
 
     def test_newlines(self):
