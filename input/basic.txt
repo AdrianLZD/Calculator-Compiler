@@ -1,6 +1,6 @@
 int you = 0;
 float tes7 = 0;
-for(you = tes7; you < 10; you++){
+for(you = 0; you < 10; you++){
     
 }
 
@@ -26,6 +26,8 @@ if (c > b) {
         int asd = 123;
     }
 }
+
+print("1" == true);
 
 
 

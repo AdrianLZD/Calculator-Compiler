@@ -47,7 +47,8 @@ var_cast = {
 flowctrls = {
     'if' : 'if',
     'for' : 'for',
-    'while' : 'while'
+    'while' : 'while',
+    'print' : 'print'
 }
 
 toPrint = ''
@@ -117,6 +118,8 @@ def create_block_table(node: Node, parent: SymbolTable, id):
                 block_for(child, table, child_blocks)
             elif child.type == 'while':
                 block_while(child, table, child_blocks)
+            elif child.type == 'print':
+                validate_print(child, table)
                 
         elif child.type == 'id':
             id_data = search_variable(child.value, table)
@@ -246,9 +249,27 @@ def block_while(node: Node, parent: SymbolTable, blocks: int):
     #Create block
     parent.children['while' + str(blocks)] = create_block_table(node.children[0].children[1], parent, str(blocks) + 'while')
 
+
+def validate_print(node: Node, scope: SymbolTable):
+    child_types = [None, None]
+    for i, child in enumerate(node.children):
+        if child.type == 'id':
+            child_types[i] = search_variable(child.value, scope)
+        elif child.type in comparators:
+            child_types[i] = validate_compar_types(child, scope)
+        else:
+            child_types[i] = child.type
+
+    if child_types[0] == 'string' or child_types[1] == 'string':
+        logger.error('[!] Semantic error.')
+        logger.info('[?] Can not use "' + node.type + '" with strings.')
+        raise NameError('Incompatible comparison.')
+
+
 def test_input(input):
     create_symbols_table(input)
     return 'good'
+
 
 def test_input_file(file):
     input = file_to_str(file)
