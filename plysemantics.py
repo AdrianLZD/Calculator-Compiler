@@ -90,15 +90,22 @@ def create_block_table(node: Node, parent: SymbolTable, id):
                 logger.info('[?] Variable previously defined: ' + str(child.value) + '.')
                 raise NameError("The variable " + child.value + " had already been defined.")
             
+            if child.type == 'dint':
+                validate_int(child, table, child.value)
+
             if child.children[0].type == 'id':
                 assign_type = search_variable(child.children[0].value, table)
+                if var_declare[child.type] == 'float' and assign_type == 'int':
+                    table.children[child.value] = {'type': var_declare[child.type]}
+                    continue
+
                 if var_declare[child.type] != assign_type:
                     logger.error('[!] Semantic error.')
                     logger.info('[?] Can not assign a "' + assign_type + '" to a "' + var_declare[child.type] + '".')
                     raise NameError("Incompatible assignment.")
 
             elif child.children[0].type in comparators:
-                check_compar_types(child.children[0], table)
+                validate_compar_types(child.children[0], table)
 
             table.children[child.value] = {'type': var_declare[child.type]}
             
@@ -113,7 +120,9 @@ def create_block_table(node: Node, parent: SymbolTable, id):
                 
         elif child.type == 'id':
             id_data = search_variable(child.value, table)
-            table.children[child.value] = {'type' :id_data[0]}
+            if id_data == 'int':
+                validate_int(child, table, child.value)
+            table.children[child.value] = {'type' :id_data}
 
     return table
 
@@ -132,13 +141,32 @@ def search_variable(id : string, parent: SymbolTable, raiseException = True):
             return None
 
 
-def check_compar_types(node: Node, scope: SymbolTable):
+def validate_int(node: Node, scope: SymbolTable, assign: str):
+    for child in node.children:
+        raise_error = False
+        if child.type == 'float':
+            raise_error = True
+        elif child.type == 'id':
+            if search_variable(child.value, scope) == 'float':
+                raise_error = True
+        elif child.type in operators:
+            validate_int(child, scope, assign)
+
+        if raise_error:
+            logger.error('[!] Semantic error.')
+            logger.info('[?] Can not assign a "float" to integer "' + assign + '".')
+            raise NameError('Incompatible declaration.')
+
+    return True
+
+
+def validate_compar_types(node: Node, scope: SymbolTable):
     child_types = [None, None]
     for i, child in enumerate(node.children):
         if child.type == 'id':
             child_types[i] = search_variable(child.value, scope)
         elif child.type in comparators:
-            child_types[i] = check_compar_types(child, scope)
+            child_types[i] = validate_compar_types(child, scope)
         else:
             child_types[i] = child.type
 
@@ -149,12 +177,13 @@ def check_compar_types(node: Node, scope: SymbolTable):
 
     return True
 
+
 def block_if(node: Node, parent: SymbolTable, blocks: int):
     for i, child in enumerate(node.children):
         if child.type == 'else':
             node_to_use = child.children[0]
         else:
-            check_compar_types(child, parent)
+            validate_compar_types(child, parent)
             node_to_use = child.children[1]
             
         block_id = str(i) + child.value
@@ -168,23 +197,33 @@ def block_for(node: Node, parent: SymbolTable, blocks: int):
     parent.children['for' + str(blocks)] = table
     # Declaration
     declare_child = node.children[0]
+    assign_type = ''
     if declare_child.type == 'id':
-        id_data = search_variable(declare_child.value, table)
-        if not id_data in ['float', 'int']:
+        assign_type = search_variable(declare_child.value, table)
+
+        if not assign_type in ['float', 'int']:
             logger.error('[!] Semantic error.')
-            logger.info('[?] Can not use "' + id_data + '" to traverse in a for loop.')
+            logger.info('[?] Can not use "' + assign_type + '" to traverse in a for loop.')
             raise NameError('Incompatible declaration.')
+
+        if assign_type == 'int':
+            validate_int(declare_child, table, declare_child.value)
     else:
-        ref_type = search_variable(declare_child.value, table, False)
-        if ref_type != None:
+        assign_type = search_variable(declare_child.value, table, False)
+
+        if assign_type != None:
             logger.error('[!] Semantic error.')
             logger.info('[?] Variable previously defined: ' + str(declare_child.value) + '.')
             raise NameError("The variable " + declare_child.value + " had already been defined.")
+        if declare_child.type == 'dint':
+            validate_int(declare_child, table, declare_child.value)
+
         table.children[declare_child.value] = {'type': var_declare[declare_child.type]}
-        #parent.children['for' + str(blocks)].children[declare_child.value] = {'type': var_declare[declare_child.type]}
     
+    
+
     # Condition
-    check_compar_types(node.children[1], table)
+    validate_compar_types(node.children[1], table)
     
     # Instruction
     ins_type = search_variable(node.children[3].children[0].value, table)
@@ -192,6 +231,7 @@ def block_for(node: Node, parent: SymbolTable, blocks: int):
         logger.error('[!] Semantic error.')
         logger.info('[?] Can not use a "' + ins_type + '" in a "for" declaration.')
         raise NameError('Incompatible expression.')
+    
     #Create block
     child_block = create_block_table(node.children[2], table, blocks)
     parent.children['for' + str(blocks)].children.update(child_block.children)
@@ -200,7 +240,7 @@ def block_for(node: Node, parent: SymbolTable, blocks: int):
 def block_while(node: Node, parent: SymbolTable, blocks: int):
     #Check comparison
     if node.children[0].children[0].type in comparators:
-        check_compar_types(node.children[0].children[0], parent)
+        validate_compar_types(node.children[0].children[0], parent)
         print(node.children[0].children[0].print())
     
     #Create block

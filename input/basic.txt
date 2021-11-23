@@ -1,3 +1,12 @@
+int you = 0;
+float tes7 = 0;
+for(you = tes7; you < 10; you++){
+    
+}
+
+
+float test4 = 123123.123;
+int notfloat = 1 + (4 + 1)/2 * 1;
 int a = 12;
 int b = 34;
 int c = a + b;
@@ -46,23 +55,25 @@ for(i = 0; i < 10; i++){
     }
 }
 
-for(int j = 0; i < 10; i++){
-    
-}
 
 for(int ahjl; i < 10; i++){
     
 }
 
+float nasotfloat = 1 + notfloat;
+
 float test2 = 1.5;
 string helpp = (1) + "asd";
+int whilevar;
 while(test2 < 2){
-    int whilevar = 10.234214;
+    whilevar = 10;
 }
 
 while(test2 < 2){
-    int whilevar = 10.234214;
+    whilevar = 10;
 }
+
+
 
 
 
