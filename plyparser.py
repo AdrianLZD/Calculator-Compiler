@@ -1,7 +1,7 @@
 import ply.yacc as yacc
 import plylexer
-import logger
-from node import Node
+from util import logger
+from util.node import Node
 from ply.lex import LexError
 
 tokens = plylexer.tokens

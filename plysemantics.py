@@ -1,9 +1,9 @@
 import plyparser
 import operator
 import string
-import logger
-from node import Node
-from symboltable import SymbolTable
+from util import logger
+from util.node import Node
+from util.symboltable import SymbolTable
 
 
 operators = {
@@ -63,20 +63,20 @@ def file_to_str(file):
     return toStr
 
 
-def create_symbols_table(input):
+def analize_semantics(input):
     try:
         parse_tree: Node = plyparser.parse_input(input)
     except SyntaxError as e:
         logger.error('[!] Parser failed.')
         raise e
-    print(parse_tree.print())
+    #print(parse_tree.print())
     symbol_table = SymbolTable('', None, {})
     try:
         symbol_table = create_block_table(parse_tree, symbol_table, 'm')
     except NameError as e:
         exit(0)
 
-    return symbol_table
+    return [parse_tree, symbol_table]
 
 
 def create_block_table(node: Node, parent: SymbolTable, id):
@@ -267,7 +267,7 @@ def validate_print(node: Node, scope: SymbolTable):
 
 
 def test_input(input):
-    create_symbols_table(input)
+    analize_semantics(input)
     return 'good'
 
 
@@ -279,7 +279,7 @@ def test_input_file(file):
 if __name__ == '__main__':
     input = file_to_str('input/basic.txt')
     try:
-        print(create_symbols_table(input).print())
+        print(analize_semantics(input).print())
     except SyntaxError or NameError:
         pass
     

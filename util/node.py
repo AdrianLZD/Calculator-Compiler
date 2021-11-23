@@ -30,6 +30,11 @@ class Node:
 
         return toStr
 
+
+    def __str__(self):
+        return self.print()
+
+
     # Prints only the value of nodes
     def print_basic_test(self):
         toStr = ''
