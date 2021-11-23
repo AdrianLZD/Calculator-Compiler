@@ -344,13 +344,15 @@ class ParserTests(unittest.TestCase):
             'for(int i = 0; a < 2; a--) { }'), 'P0_block|P1_for|P2_i|P3_0|P2_cond|P3_<|P4_a|P4_2|P2_empty|P2_-|P3_a|P3_1|')
         self.assertEqual(plyparser.test_tokens_parents(
             'for(float i = 0; a < 2; a--) { }'), 'P0_block|P1_for|P2_i|P3_0|P2_cond|P3_<|P4_a|P4_2|P2_empty|P2_-|P3_a|P3_1|')
+        self.assertEqual(plyparser.test_tokens_parents(
+            'for(i = 0; i<2 ;i++) { }'), 'P0_block|P1_for|P2_i|P3_0|P2_cond|P3_<|P4_i|P4_2|P2_empty|P2_+|P3_i|P3_1|')
         self.assertRaises(SyntaxError, plyparser.test_tokens_parents, 'for() { }')
         self.assertRaises(SyntaxError, plyparser.test_tokens_parents, 'for(int i = 0;) { }')
         self.assertRaises(SyntaxError, plyparser.test_tokens_parents, 'for(int i = 0; i< 2) { }')
         self.assertRaises(SyntaxError, plyparser.test_tokens_parents, 'for(int i = 0; i++) { }')
         self.assertRaises(SyntaxError, plyparser.test_tokens_parents, 'for(int i = 0; ;i++) { }')
         self.assertRaises(SyntaxError, plyparser.test_tokens_parents, 'for(float i = 0; i<2 ;i) { }')
-        self.assertRaises(SyntaxError, plyparser.test_tokens_parents, 'for(i = 0; i<2 ;i++) { }')
+        
 
 
     def test_print(self):

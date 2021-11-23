@@ -78,7 +78,7 @@ def create_symbols_table(input):
     return symbol_table
 
 
-def create_block_table(node: Node, parent: SymbolTable, id: int):
+def create_block_table(node: Node, parent: SymbolTable, id):
     child_blocks = 0
     id_prefix = parent.id + '.' if parent.id != '' else parent.id
     table = SymbolTable(id_prefix + str(id), parent, {})
@@ -168,9 +168,24 @@ def block_for(node: Node, parent: SymbolTable, blocks: int):
     parent.children['for' + str(blocks)] = table
     # Declaration
     declare_child = node.children[0]
-    table.children[declare_child.value] = {'type': var_declare[declare_child.type]}
+    if declare_child.type == 'id':
+        id_data = search_variable(declare_child.value, table)
+        if not id_data in ['float', 'int']:
+            logger.error('[!] Semantic error.')
+            logger.info('[?] Can not use "' + id_data + '" to traverse in a for loop.')
+            raise NameError('Incompatible declaration.')
+    else:
+        ref_type = search_variable(declare_child.value, table, False)
+        if ref_type != None:
+            logger.error('[!] Semantic error.')
+            logger.info('[?] Variable previously defined: ' + str(declare_child.value) + '.')
+            raise NameError("The variable " + declare_child.value + " had already been defined.")
+        table.children[declare_child.value] = {'type': var_declare[declare_child.type]}
+        #parent.children['for' + str(blocks)].children[declare_child.value] = {'type': var_declare[declare_child.type]}
+    
     # Condition
     check_compar_types(node.children[1], table)
+    
     # Instruction
     ins_type = search_variable(node.children[3].children[0].value, table)
     if not ins_type in ['int', 'float']:
@@ -178,10 +193,8 @@ def block_for(node: Node, parent: SymbolTable, blocks: int):
         logger.info('[?] Can not use a "' + ins_type + '" in a "for" declaration.')
         raise NameError('Incompatible expression.')
     #Create block
-    parent.children['for' + str(blocks)].children[declare_child.value] = {'type': var_declare[declare_child.type]}
-    child_block = create_block_table(node.children[2], parent, blocks)
+    child_block = create_block_table(node.children[2], table, blocks)
     parent.children['for' + str(blocks)].children.update(child_block.children)
-    child_block.parent = parent
 
 
 def block_while(node: Node, parent: SymbolTable, blocks: int):
@@ -191,8 +204,7 @@ def block_while(node: Node, parent: SymbolTable, blocks: int):
         print(node.children[0].children[0].print())
     
     #Create block
-    parent.children['while' + str(blocks)] = create_block_table(node.children[0].children[1], parent, 1)
-    pass
+    parent.children['while' + str(blocks)] = create_block_table(node.children[0].children[1], parent, str(blocks) + 'while')
 
 def test_input(input):
     create_symbols_table(input)

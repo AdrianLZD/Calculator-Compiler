@@ -34,8 +34,9 @@ if (c > 124214) {
         int asd = 123;
     }
 }
-int i = 0;
-for(int i = 0; i < 10; i++){
+int i = 12;
+for(i = 0; i < 10; i++){
+    boolean aver = false;
     for(int j = 0; j < 20; j++){
         int ahorasi =  i +12;
     }
@@ -45,14 +46,24 @@ for(int i = 0; i < 10; i++){
     }
 }
 
-for(int i = 0; i < 10; i++){
+for(int j = 0; i < 10; i++){
+    
+}
+
+for(int ahjl; i < 10; i++){
     
 }
 
 float test2 = 1.5;
-string helpp = "asd";
+string helpp = (1) + "asd";
 while(test2 < 2){
     int whilevar = 10.234214;
 }
+
+while(test2 < 2){
+    int whilevar = 10.234214;
+}
+
+
 
 

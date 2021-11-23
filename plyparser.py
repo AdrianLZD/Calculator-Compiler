@@ -451,6 +451,14 @@ def p_for_declare_value(p):
     '''
     p[0] = Node('d' + p[1], p[2], [p[4]])
     p[4].parent = p[0]
+
+
+def p_for_declare_id(p):
+    '''
+    fordeclare : ID '=' numstmt
+    '''
+    p[0] = Node('id', p[1], [p[3]])
+    p[3].parent = p[0]
     
 
 def p_for_instruction(p):
