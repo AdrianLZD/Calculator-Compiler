@@ -279,7 +279,7 @@ def test_input_file(file):
 if __name__ == '__main__':
     input = file_to_str('input/basic.txt')
     try:
-        print(analize_semantics(input).print())
+        print(analize_semantics(input)[1])
     except SyntaxError or NameError:
         pass
     

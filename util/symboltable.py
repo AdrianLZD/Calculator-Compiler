@@ -15,4 +15,7 @@ class SymbolTable:
 
         return toStr
 
+    def __str__(self):
+        return self.print()
+
     
