@@ -1,12 +1,18 @@
 int a = 1 + 3;
 string as = "asd" + (1) + (1.02312);
+boolean bb = (1 > (3 + 2.0));
 boolean ab = true and (1 > false) or 123123;
-boolean bb = (1 > (1 + 2.0));
 boolean cb = True or 1 + 2.0;
 boolean db = 1 + 2.0 or False;
 float af = 1 + 1.0 - (4 / 2);
 
-a = -2 - 2;
-if(a < 10){
+boolean eb = (1 > 2);
+if(20 < 10){
     int aif = 0;
+}
+
+if(123123 < 435098){
+    int bif = 0;
+}else {
+    int cif = 0;
 }

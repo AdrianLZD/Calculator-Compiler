@@ -18,7 +18,9 @@ comparators = {
     '>' : operator.gt,
     '<' : operator.lt,
     '>=' : operator.ge,
-    '<=' : operator.le
+    '<=' : operator.le,
+    '==' : operator.eq,
+    '!=' : operator.ne
 }
 
 var_types = {
@@ -173,10 +175,24 @@ def validate_compar_types(node: Node, scope: SymbolTable):
         else:
             child_types[i] = child.type
 
-    if child_types[0] == 'string' or child_types[1] == 'string':
-        logger.error('[!] Semantic error.')
-        logger.info('[?] Can not use "' + node.type +'" with strings.')
-        raise NameError('Incompatible comparison.')
+    if child.parent.type in ['==', '!=']:
+        is_number = False
+        is_string = False
+        if child_types[0] in ['int', 'float'] or child_types[1] in ['int', 'float']:
+            is_number = True
+        
+        if child_types[0] == 'string' or child_types[1] == 'string':
+            is_string = True
+
+        if is_number and is_string:
+            logger.error('[!] Semantic error.')
+            logger.info('[?] Can not use "' + node.type + '" between numbers and strings.')
+            raise NameError('Incompatible comparison.')
+    else:
+        if child_types[0] == 'string' or child_types[1] == 'string':
+            logger.error('[!] Semantic error.')
+            logger.info('[?] Can not use "' + node.type +'" to compare strings.')
+            raise NameError('Incompatible comparison.')
 
     return True
 

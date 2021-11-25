@@ -331,7 +331,7 @@ def p_comparexpr(p):
     '''
     p[0] = Node(p[2], p[2], [p[1], p[3]])
     p[1].parent = p[0]
-    p[3].parent = p[3]
+    p[3].parent = p[0]
 
 
 def p_compall(p):
