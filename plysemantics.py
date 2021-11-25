@@ -188,7 +188,7 @@ def validate_compar_types(node: Node, scope: SymbolTable):
             logger.error('[!] Semantic error.')
             logger.info('[?] Can not use "' + node.type + '" between numbers and strings.')
             raise NameError('Incompatible comparison.')
-    else:
+    elif not None in child_types:
         if child_types[0] == 'string' or child_types[1] == 'string':
             logger.error('[!] Semantic error.')
             logger.info('[?] Can not use "' + node.type +'" to compare strings.')
@@ -258,10 +258,7 @@ def block_for(node: Node, parent: SymbolTable, blocks: int):
 
 def block_while(node: Node, parent: SymbolTable, blocks: int):
     #Check comparison
-    if node.children[0].children[0].type in comparators:
-        validate_compar_types(node.children[0].children[0], parent)
-        print(node.children[0].children[0].print())
-    
+    validate_compar_types(node.children[0], parent)
     #Create block
     parent.children['while' + str(blocks)] = create_block_table(node.children[0].children[1], parent, str(blocks) + 'while')
 

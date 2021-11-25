@@ -52,6 +52,8 @@ def convert_node(node: Node):
         elif child.type in flowctrls:
             if child.type == 'if':
                 if_instruction(child)
+            elif child.type == 'while':
+                while_instruction(child)
         
 
 
@@ -140,15 +142,21 @@ def convert_id_declaration(node: Node):
         add_to_code([node.value, '=', boolean_operation(node.children[0])])
 
 
-def if_instruction(node: Node):
+def if_instruction(node: Node, add_else_ref_to_code: bool = True):
     blocks_ref = []
     has_else = False
     for child in node.children:
         if child.type == 'else':
             condition = 'True'
             has_else = True
+        elif child.children[0].type in ['int', 'float', 'string']:
+            var_num = next(var_id)
+            add_to_code(['t' + str(var_num), '=', 'toBoolean', child.children[0].value])
+            condition = 't' + str(var_num)
+        elif child.children[0].type == 'boolean':
+            condition = child.children[0].value
         else:
-            condition = boolean_operation(node.children[0].children[0])
+            condition = boolean_operation(node.children[0].children[0])  
         cond_num = next(cond_id)
         block_num = next(block_id)
         condition_id = 'v' + str(cond_num)
@@ -169,11 +177,22 @@ def if_instruction(node: Node):
     for child in node.children:
         add_to_code([blocks_ref[block_index]])
         block_index += 1
-        convert_node(node.children[0].children[1])
+        if child.type == 'else':
+            convert_node(child.children[0])
+        else:
+            convert_node(child.children[1])
 
-    if not has_else:
+    if not has_else and add_else_ref_to_code:
         add_to_code([blocks_ref[len(blocks_ref)-1]])
 
+
+def while_instruction(node: Node):
+    block_num = next(block_id)
+    add_to_code(['L' + str(block_num)])
+    if_instruction(node, False)
+    add_to_code(['True', 'IFGOTO' ,'L' + str(block_num)])
+    add_to_code(['L' + str(block_num + 2)])
+    pass
 
 def add_to_code(values):
     global code
