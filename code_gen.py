@@ -65,7 +65,7 @@ def convert_instruction(node: Node, scope: SymbolTable, block_count: int):
         if node.parent.type in ['dstring', 'string']:
             return concat_strings(node, scope, block_count)
         else:
-            return arithmetic_operation(node, scope, node.parent.type == 'dfloat')
+            return arithmetic_operation(node, scope, block_count, node.parent.type == 'dfloat')
     elif node.type in logic_compar or node.type in comparators:
         return boolean_operation(node, scope, block_count)
 
@@ -83,7 +83,7 @@ def arithmetic_operation(node: Node, scope: SymbolTable, block_count: int,  is_f
             add_to_code(['t' + str(var_num), '=', 'toFloat', node.children[i].value])
             operate[i] = 't' + str(var_num)
         if node.children[i].type in operators:
-            operate[i] = arithmetic_operation(node.children[i],scope, is_float_operation)
+            operate[i] = arithmetic_operation(node.children[i],scope, block_count, is_float_operation)
         
     var_num = next(var_id)
     add_to_code(['t' + str(var_num), '=', operate[0], node.value, operate[1]])
