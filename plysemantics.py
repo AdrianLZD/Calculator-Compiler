@@ -82,7 +82,6 @@ def analize_semantics(input):
 
 
 def create_block_table(node: Node, parent: SymbolTable, id):
-    child_blocks = 0
     id_prefix = parent.id + '.' if parent.id != '' else parent.id
     table = SymbolTable(id_prefix + str(id), parent, {})
     for child in node.children:
@@ -113,13 +112,12 @@ def create_block_table(node: Node, parent: SymbolTable, id):
             table.children[child.value] = {'type': var_declare[child.type]}
             
         elif child.type in flowctrls:
-            child_blocks += 1
             if child.type == 'if':
-                block_if(child, table, child_blocks)
+                block_if(child, table)
             elif child.type == 'for':
-                block_for(child, table, child_blocks)
+                block_for(child, table)
             elif child.type == 'while':
-                block_while(child, table, child_blocks)
+                block_while(child, table)
             elif child.type == 'print':
                 validate_print(child, table)
                 
@@ -197,23 +195,24 @@ def validate_compar_types(node: Node, scope: SymbolTable):
     return True
 
 
-def block_if(node: Node, parent: SymbolTable, blocks: int):
+def block_if(node: Node, parent: SymbolTable):
     for i, child in enumerate(node.children):
         if child.type == 'else':
             node_to_use = child.children[0]
         else:
             validate_compar_types(child, parent)
             node_to_use = child.children[1]
-            
-        block_id = str(i) + child.value
-        parent.children['if' + str(blocks) + block_id] = create_block_table(node_to_use, parent, block_id)
-        blocks += 1
+
+        parent.children['if' + str(parent.block_childs)] = create_block_table(node_to_use, parent, str(parent.block_childs) + 'if')
+        parent.block_childs += 1
+        
 
 
-def block_for(node: Node, parent: SymbolTable, blocks: int):
+def block_for(node: Node, parent: SymbolTable):
     id_prefix = parent.id + '.' if parent.id != '' else parent.id
-    table = SymbolTable(id_prefix + str(blocks) + 'for', parent, {})
-    parent.children['for' + str(blocks)] = table
+    table = SymbolTable(id_prefix + str(parent.block_childs) + 'for', parent, {})
+    parent.children['for' + str(parent.block_childs)] = table
+    
     # Declaration
     declare_child = node.children[0]
     assign_type = ''
@@ -252,15 +251,17 @@ def block_for(node: Node, parent: SymbolTable, blocks: int):
         raise NameError('Incompatible expression.')
     
     #Create block
-    child_block = create_block_table(node.children[2], table, blocks)
-    parent.children['for' + str(blocks)].children.update(child_block.children)
+    child_block = create_block_table(node.children[2], table, str(parent.block_childs) + 'for')
+    parent.children['for' + str(parent.block_childs)].children.update(child_block.children)
+    parent.block_childs += 1
 
 
-def block_while(node: Node, parent: SymbolTable, blocks: int):
+def block_while(node: Node, parent: SymbolTable):
     #Check comparison
     validate_compar_types(node.children[0], parent)
     #Create block
-    parent.children['while' + str(blocks)] = create_block_table(node.children[0].children[1], parent, str(blocks) + 'while')
+    parent.children['while' + str(parent.block_childs)] = create_block_table(node.children[0].children[1], parent, str(parent.block_childs) + 'while')
+    parent.block_childs += 1
 
 
 def validate_print(node: Node, scope: SymbolTable):

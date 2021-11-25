@@ -4,7 +4,7 @@ boolean bb = (1 > (3 + 2.0));
 boolean ab = true and (1 > false) or 123123;
 boolean cb = True or 1 + 2.0;
 boolean db = 1 + 2.0 or False;
-float af = 1 + 1.0 - (4 / 2);
+float af = a + 1 - (4 / 2);
 
 boolean eb = (1 > 2);
 if(20 < 10){
@@ -14,10 +14,25 @@ if(20 < 10){
 if(123123 < 435098){
     int bif = 0;
 }else {
-    int elseif = 0;
+    int elseif = 4 + 2;
+    elseif = elseif + 3;
 }
 
-int False = 0;
+boolean False = false;
 while(0){
-    int aw = 0;
+    False = (1 < 2);
 }
+
+if(123123 < 435098){
+    int bif = 0;
+}else {
+    int elseif = 4 + 2;
+    elseif = elseif + 3;
+}
+
+int i = 0;
+for(i = 0; i< 20; i++){
+    boolean forb = true;
+    string fors = "and many other declarations";
+}
+
