@@ -33,8 +33,8 @@ def generate_code(file):
     semantics = plysemantics.analize_semantics(input)
     abs_tree = semantics[0]
     sym_table = semantics[1]
-    print(abs_tree)
-    print(sym_table)
+    #print(abs_tree)
+    #print(sym_table)
     analize_tree(abs_tree, sym_table)
 
 
@@ -108,9 +108,22 @@ def concat_strings(node: Node, scope: SymbolTable, block_count: int):
 def boolean_operation(node: Node, scope: SymbolTable, block_count: int):
     evaluate = [node.children[0].value, node.children[1].value]
     for i in range(2):
-        if node.children[i].type in ['int', 'float', 'string'] and node.children[i].type in logic_compar:
+        # Make sure the casting to boolean is done if needed
+        if node.children[i].type in ['int', 'float'] and node.type in logic_compar:
             var_num = next(var_id)
             add_to_code(['t' + str(var_num), '=', 'toBoolean', node.children[i].value])
+            evaluate[i] = 't' + str(var_num)
+
+        # Make sure the casting to boolean is done if needed
+        if node.children[i].type == 'string' and node.type in comparators:
+            var_num = next(var_id)
+            add_to_code(['t' + str(var_num), '=', 'toBoolean', node.children[i].value])
+            evaluate[i] = 't' + str(var_num)
+
+        # Make sure the casting to int is done if needed
+        if node.children[i].type == 'boolean' and node.type in comparators:
+            var_num = next(var_id)
+            add_to_code(['t' + str(var_num), '=', 'toInt', node.children[i].value])
             evaluate[i] = 't' + str(var_num)
         
         if node.children[i].type in logic_compar or node.children[i].type in comparators:
