@@ -5,3 +5,8 @@ boolean bb = (1 > (1 + 2.0));
 boolean cb = True or 1 + 2.0;
 boolean db = 1 + 2.0 or False;
 float af = 1 + 1.0 - (4 / 2);
+
+a = -2 - 2;
+if(a < 10){
+    int aif = 0;
+}

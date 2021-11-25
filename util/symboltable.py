@@ -15,6 +15,14 @@ class SymbolTable:
 
         return toStr
 
+    def find(self, id):
+        for key, child in self.children.items():
+            if type(child) == SymbolTable:
+                return child.find(id)
+            elif key == id:
+                return child
+                
+
     def __str__(self):
         return self.print()
 

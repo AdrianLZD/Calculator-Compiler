@@ -1,6 +1,7 @@
 import plysemantics
 from util.node import Node
-from plysemantics import var_declare, var_types, operators, comparators
+from plysemantics import var_declare, var_types, operators, comparators, flowctrls
+from util.symboltable import SymbolTable
 
 def gen():
     n = 0
@@ -28,13 +29,18 @@ def generate_code(file):
 
 
 def analize_tree(tree, table):
-    convert_node(tree)
+    convert_node(tree, table)
 
 
-def convert_node(node: Node):
+def convert_node(node: Node, table: SymbolTable):
     for child in node.children:
         if child.type in var_declare:
             add_to_code([child.value,'=', convert_instruction(child.children[0])])
+        elif child.type in flowctrls:
+            if child.type == 'if':
+                if_instruction(child)
+        elif child.type == 'id':
+            convert_id_declaration(child, table)
 
 
 def convert_instruction(node: Node):
@@ -51,9 +57,10 @@ def convert_instruction(node: Node):
 
 def arithmetic_operation(node: Node, isFloatOperation: bool = False):
     operate = [node.children[0].value, node.children[1].value]
-    for i in range(2):
-        if node.children[i].type == 'float':
-            isFloatOperation = True
+    if not isFloatOperation:
+        for i in range(2):
+            if node.children[i].type == 'float':
+                isFloatOperation = True
 
     for i in range(2):
         if isFloatOperation and node.children[i].type == 'int':
@@ -102,6 +109,24 @@ def boolean_operation(node: Node):
     var_num = next(var_id)
     add_to_code(['t' + str(var_num), '=', evaluate[0], node.value, evaluate[1]])
     return 't' + str(var_num)
+
+
+def if_instruction(node: Node):
+    pass
+
+
+def convert_id_declaration(node: Node, table: SymbolTable):
+    id_data = table.find(node.value)
+    print(id_data)
+    if id_data['type'] in ['int', 'float']:
+        add_to_code([node.value, '=', convert_instruction(node.children[0])])
+    elif id_data['type'] == 'string':
+        if node.children[0].type == 'string':
+            add_to_code([node.value, '=', convert_instruction(node.children[0].value)])
+        else:
+            add_to_code([node.value, '=', concat_strings(node.children[0])])
+    elif id_data['type'] == 'boolean':
+        add_to_code([node.value, '=', boolean_operation(node.children[0])])
 
 
 def add_to_code(values):
