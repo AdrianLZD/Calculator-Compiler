@@ -68,7 +68,10 @@ def p_stmt(p):
 def p_simstmt_assign(p):
     '''
     simstmt : INT ID '=' numstmt
+            | INT ID '=' wordstmt
             | FLOAT ID '=' numstmt
+            | FLOAT ID '=' wordstmt
+            | STRING ID '=' numstmt
             | STRING ID '=' wordstmt
             | BOOLEAN ID '=' boolstmt
     '''
@@ -98,12 +101,19 @@ def p_simstmt_declaration(p):
 
 def p_simstmt_id(p):
     '''
-    simstmt : ID '=' numstmt
-            | ID '=' wordstmt
+    simstmt : ID '=' wordstmt 
+            | ID '=' numstmt
             | ID '=' boolstmt
     '''
     p[0] = Node('id', p[1], [p[3]])
     p[3].parent = p[0]
+
+
+def p_wordexpr_id(p):
+    '''
+    wordexpr : ID
+    '''
+    p[0] = Node('id', p[1])
 
 
 def p_boolexpr_id(p):
@@ -123,6 +133,7 @@ def p_numstmt(p):
 def p_numstmt_concat_wordstmt(p):
     '''
     numstmt : numstmt '+' wordstmt
+            | wordstmt '+' numstmt
     '''
     p[0] = Node('+', '+', [p[1], p[3]])
     p[1].parent = p[0]
@@ -144,12 +155,49 @@ def p_numexpr(p):
     p[0] = p[1]
 
 
+def p_wordexpr_concats(p):
+    '''
+    wordexpr : wordexpr '+' wordexpr
+             | wordstmt '+' wordstmt
+             | wordexpr '+' wordstmt
+             | wordstmt '+' wordexpr
+             | numexpr '+' wordexpr
+             | wordexpr '+' numexpr
+             | numexpr '+' wordstmt
+             | wordstmt '+' numexpr
+             | numstmt '+' wordexpr
+             | wordexpr '+' numstmt
+             | numstmt '+' wordstmt
+             | wordstmt '+' numstmt
+    '''
+    p[0] = Node('+', '+', [p[1], p[3]])
+    p[0] = Node(p[2], p[2], [p[1], p[3]])
+    p[1].parent = p[0]
+    p[3].parent = p[0]
+
 def p_numexpr_arit(p):
     '''
-    numexpr : numexpr arit numexpr
-            | numstmt arit numexpr
-            | numexpr arit numstmt
-            | numstmt arit numstmt
+    numexpr : numexpr '+' numexpr
+            | numstmt '+' numexpr
+            | numexpr '+' numstmt
+            | numstmt '+' numstmt
+            | numexpr '-' numexpr
+            | numstmt '-' numexpr
+            | numexpr '-' numstmt
+            | numstmt '-' numstmt
+            | numexpr '*' numexpr
+            | numstmt '*' numexpr
+            | numexpr '*' numstmt
+            | numstmt '*' numstmt
+            | numexpr '/' numexpr
+            | numstmt '/' numexpr
+            | numexpr '/' numstmt
+            | numstmt '/' numstmt
+            | numexpr '^' numexpr
+            | numstmt '^' numexpr
+            | numexpr '^' numstmt
+            | numstmt '^' numstmt
+            
     '''
     p[0] = Node(p[2], p[2], [p[1], p[3]])
     p[1].parent = p[0]
@@ -161,14 +209,19 @@ def p_numexpr_uminus(p):
     numexpr : '-' numexpr %prec UMINUS
             | '+' numexpr %prec UMINUS
     '''
-    ""
     if p[2].type == 'float' or p[2].type == 'int':
         p[2].value = p[1] + p[2].value
     else:
-        p[2].children[0].value = p[1] + p[2].children[0].value
+        child_found = False
+        parent = p[2]
+        while(not child_found):
+            if parent.children[0].type == 'float' or parent.children[0].type == 'int':
+                parent.children[0].value = p[1] + parent.children[0].value
+                child_found = True
+            else:
+                parent = parent.children[0]
         
     p[0] = p[2]
-
 
 def p_number_id(p):
     '''
@@ -189,17 +242,6 @@ def p_number_float(p):
     number : FNUMBER 
     '''
     p[0] = Node('float', p[1])
-
-
-def p_arit(p):
-    '''
-    arit : '+'
-         | '-'
-         | '*'
-         | '/'
-         | '^'
-    '''
-    p[0] = p[1]
 
 
 def p_wordstmt(p):
@@ -234,23 +276,6 @@ def p_wordexpr_word(p):
             wordFix += word[i]
         i += 1
     p[0] = Node('string', wordFix)
-
-
-def p_wordexpr_concats(p):
-    '''
-    wordexpr : wordexpr '+' wordexpr
-             | wordstmt '+' wordstmt
-             | wordexpr '+' wordstmt
-             | wordstmt '+' wordexpr
-             | ID
-    '''
-    if len(p) == 4:
-        p[0] = Node('+', '+', [p[1], p[3]])
-        p[0] = Node(p[2], p[2], [p[1], p[3]])
-        p[1].parent = p[0]
-        p[3].parent = p[0]
-    else:
-        p[0] = Node('id', p[1])
 
 
 def p_boolstmt(p):
@@ -328,6 +353,8 @@ def p_comparexpr(p):
                | boolstmt compall boolstmt
                | wordstmt compall boolstmt
                | boolstmt compall wordstmt
+               | wordstmt compall numstmt
+               | numstmt compall wordstmt
     '''
     p[0] = Node(p[2], p[2], [p[1], p[3]])
     p[1].parent = p[0]

@@ -30,7 +30,7 @@ tokens = list(keywords.values()) + [
     'ID'
 ]
 
-t_ignore = " \t|\n"
+t_ignore = " \t"
 
 t_INUMBER = r'\d+'
 t_FNUMBER = r'((\d*\.\d+)(E[\+-]?\d+)?|([1-9]\d*E[\+-]?\d+))'
@@ -48,7 +48,6 @@ def t_ID(t):
 def t_NEWLINE(t):
     r'\n'
     t.lexer.lineno += 1
-    return t
 
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])

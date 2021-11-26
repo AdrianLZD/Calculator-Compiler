@@ -23,6 +23,11 @@ comparators = {
     '!=' : operator.ne
 }
 
+logic_compar = {
+    'or' : 'or',
+    'and' : 'and'
+}
+
 var_types = {
     'int': 'int',
     'float': 'float',
@@ -86,7 +91,7 @@ def create_block_table(node: Node, parent: SymbolTable, id):
     table = SymbolTable(id_prefix + str(id), parent, {})
     for child in node.children:
         if child.type in var_declare:
-            ref_type = search_variable(child.value, table, False)
+            ref_type = search_variable_type(child.value, table, False)
             if ref_type != None:
                 logger.error('[!] Semantic error.')
                 logger.info('[?] Variable previously defined: ' + str(child.value) + '.')
@@ -94,9 +99,15 @@ def create_block_table(node: Node, parent: SymbolTable, id):
             
             if child.type == 'dint':
                 validate_int(child, table, child.value)
+            elif child.type == 'dfloat':
+                validate_float(child, table, child.value)
+            elif child.type == 'dstring':
+                validate_string(child, table, child.value)
+            elif child.type == 'dboolean':
+                validate_boolean(child, table, child.value)
 
             if child.children[0].type == 'id':
-                assign_type = search_variable(child.children[0].value, table)
+                assign_type = search_variable_type(child.children[0].value, table)
                 if var_declare[child.type] == 'float' and assign_type == 'int':
                     table.children[child.value] = {'type': var_declare[child.type]}
                     continue
@@ -106,7 +117,7 @@ def create_block_table(node: Node, parent: SymbolTable, id):
                     logger.info('[?] Can not assign a "' + assign_type + '" to a "' + var_declare[child.type] + '".')
                     raise NameError("Incompatible assignment.")
 
-            elif child.children[0].type in comparators:
+            elif child.children[0].type in comparators or child.children[0].type in logic_compar:
                 validate_compar_types(child.children[0], table)
 
             table.children[child.value] = {'type': var_declare[child.type]}
@@ -122,19 +133,25 @@ def create_block_table(node: Node, parent: SymbolTable, id):
                 validate_print(child, table)
                 
         elif child.type == 'id':
-            id_data = search_variable(child.value, table)
+            id_data = search_variable_type(child.value, table)
             if id_data == 'int':
                 validate_int(child, table, child.value)
+            elif id_data == 'float':
+                validate_float(child, table, child.value)
+            elif id_data == 'string':
+                validate_string(child, table, child.value)
+            elif id_data == 'boolean':
+                validate_boolean(child, table, child.value)
             table.children[child.value] = {'type' :id_data}
 
     return table
 
 # Retrieves the type of a variable
-def search_variable(id : string, parent: SymbolTable, raiseException = True):
+def search_variable_type(id : string, parent: SymbolTable, raiseException = True):
     if id in parent.children:
         return parent.children[id]['type']
     elif parent.parent != None:
-        return search_variable(id, parent.parent, raiseException)
+        return search_variable_type(id, parent.parent, raiseException)
     else:
         if raiseException == True:
             logger.error('[!] Semantic error.')
@@ -145,21 +162,154 @@ def search_variable(id : string, parent: SymbolTable, raiseException = True):
 
 
 def validate_int(node: Node, scope: SymbolTable, assign: str):
+    type_error = 'float'
+    raise_error = False
     for child in node.children:
-        raise_error = False
-        if child.type == 'float':
+        if child.type == 'float' or child.type == 'string':
             raise_error = True
+            type_error = child.type
         elif child.type == 'id':
-            if search_variable(child.value, scope) == 'float':
+            type_error = search_variable_type(child.value, scope)
+            if type_error != 'int':
                 raise_error = True
+            else:
+                type_error = 'float'
         elif child.type in operators:
             validate_int(child, scope, assign)
+       
+        if raise_error:
+            print(child)
+            print(node)
+            logger.error('[!] Semantic error.')
+            logger.info('[?] Can not assign a "' + type_error +'" to integer "' + assign + '".')
+            raise NameError('Incompatible declaration.')
+
+    return True
+
+
+def validate_float(node: Node, scope: SymbolTable, assign: str):
+    raise_error = False
+    for child in node.children:
+        if child.type == 'id':
+            type_error = search_variable_type(child.value, scope)
+            if not type_error in ['int', 'float']:
+                raise_error = True
 
         if raise_error:
             logger.error('[!] Semantic error.')
-            logger.info('[?] Can not assign a "float" to integer "' + assign + '".')
+            logger.info('[?] Can not assign a "' + type_error +'" to float "' + assign + '".')
             raise NameError('Incompatible declaration.')
 
+    return True
+
+
+def validate_arithmetic(node: Node, scope: SymbolTable, assign: str):
+    operate = [node.children[0].value, node.children[1].value]
+    child_types = [node.children[0].type, node.children[1].type]
+
+    # Find id types if needed
+    for i in range(2):
+        if child_types[i] == 'id':
+            child_types[i] = search_variable_type(operate[i], scope)
+
+    # # Helps to detect when integers should be casted to floats
+    # for i in range(2):
+    #     if not float_operation:
+    #         if child_types[i] == 'float':
+    #             float_operation = True
+    #         elif child_types[i] in operators:
+    #             float_operation = is_float_operation(node.children[i], scope)
+
+    for i in range(2):
+        if child_types[i] in ['boolean', 'string']:
+            logger.error('[!] Semantic error.')
+            logger.info('[?] Can not operate a "' + child_types[i] +'" with a number.')
+            raise NameError('Incompatible declaration.')
+        if child_types[i] in operators:
+            validate_arithmetic(node.children[i], scope, assign)
+
+    return True
+
+
+def validate_string(node: Node, scope: SymbolTable, assign: str):
+    if node.children[0].type != 'string' and node.children[0].type == '+':
+        if not is_string_concat(node, scope):
+            logger.error('[!] Semantic error.')
+            logger.info('[?] Can not assign a "number" to string "' + assign + '".')
+            raise NameError('Incompatible declaration.')
+
+    raise_error = False
+    for child in node.children:
+        if child.type == 'id':
+            type_error = search_variable_type(child.value, scope)
+            if not type_error in ['string', 'float', 'int']:
+                raise_error = True
+        elif child.type == '+':
+            validate_string_concatenation(child, scope, assign)
+        if raise_error:
+            logger.error('[!] Semantic error.')
+            logger.info('[?] Can not assign a "' + type_error +'" to string "' + assign + '".')
+            raise NameError('Incompatible declaration.')
+    return True
+
+
+def validate_string_concatenation(node: Node, scope: SymbolTable, assign:str, arith_childs=False):
+    concat = [node.children[0].value, node.children[1].value]
+    child_types = [node.children[0].type, node.children[1].type]
+
+    # Find id types if needed
+    for i in range(2):
+        if child_types[i] == 'id':
+            child_types[i] = search_variable_type(concat[i], scope)
+
+    # Helps to detect when an arithmetic operation is being concatenated
+    for i in range(2):
+        if not arith_childs:
+            if concat[i] in operators:
+                arith_childs = not is_string_concat(node.children[i], scope)
+
+    for i in range(2):
+        if child_types[i] == 'string':
+            pass
+        elif not arith_childs:
+            if child_types[i] == 'boolean':
+                logger.error('[!] Semantic error.')
+                logger.info('[?] Can not concatenate a "' + child_types[i] +'" to string "' + assign + '".')
+                raise NameError('Incompatible declaration.')
+            elif child_types[i] in operators:
+                validate_string_concatenation(node.children[i], scope, assign, arith_childs)
+        else:
+            validate_arithmetic(node.children[i], scope, assign)
+
+
+def is_string_concat(node: Node, scope: SymbolTable):
+    is_concat = False
+    for child in node.children:
+        if is_concat == True:
+            return True
+
+        if child.type == 'string':
+            return True
+        elif child.type in operators:
+            is_concat = is_string_concat(child, scope)
+        elif child.type == 'id' and search_variable_type(child.value, scope) == 'string':
+            return True
+    return is_concat
+
+
+def validate_boolean(node: Node, scope: SymbolTable, assign: str):
+    raise_error = False
+    for child in node.children:
+        if child.type == 'id':
+            type_error = search_variable_type(child.value, scope)
+            if type_error != 'boolean':
+                raise_error = True
+        elif child.type in comparators or child.type in logic_compar:
+            validate_compar_types(child, scope)
+        if raise_error:
+            logger.error('[!] Semantic error.')
+            logger.info('[?] Can not assign a "' + type_error +'" to boolean "' + assign + '".')
+            raise NameError('Incompatible declaration.')
     return True
 
 
@@ -167,8 +317,8 @@ def validate_compar_types(node: Node, scope: SymbolTable):
     child_types = [None, None]
     for i, child in enumerate(node.children):
         if child.type == 'id':
-            child_types[i] = search_variable(child.value, scope)
-        elif child.type in comparators:
+            child_types[i] = search_variable_type(child.value, scope)
+        elif child.type in comparators or child.type in logic_compar:
             child_types[i] = validate_compar_types(child, scope)
         else:
             child_types[i] = child.type
@@ -207,7 +357,6 @@ def block_if(node: Node, parent: SymbolTable):
         parent.block_childs += 1
         
 
-
 def block_for(node: Node, parent: SymbolTable):
     id_prefix = parent.id + '.' if parent.id != '' else parent.id
     table = SymbolTable(id_prefix + str(parent.block_childs) + 'for', parent, {})
@@ -217,17 +366,17 @@ def block_for(node: Node, parent: SymbolTable):
     declare_child = node.children[0]
     assign_type = ''
     if declare_child.type == 'id':
-        assign_type = search_variable(declare_child.value, table)
+        assign_type = search_variable_type(declare_child.value, table)
 
         if not assign_type in ['float', 'int']:
             logger.error('[!] Semantic error.')
             logger.info('[?] Can not use "' + assign_type + '" to traverse in a for loop.')
             raise NameError('Incompatible declaration.')
-
+        
         if assign_type == 'int':
             validate_int(declare_child, table, declare_child.value)
     else:
-        assign_type = search_variable(declare_child.value, table, False)
+        assign_type = search_variable_type(declare_child.value, table, False)
 
         if assign_type != None:
             logger.error('[!] Semantic error.')
@@ -238,13 +387,14 @@ def block_for(node: Node, parent: SymbolTable):
 
         table.children[declare_child.value] = {'type': var_declare[declare_child.type]}
     
-    
+    if declare_child.children[0].type in operators:
+        validate_arithmetic(declare_child.children[0], table, declare_child.value)
 
     # Condition
     validate_compar_types(node.children[1], table)
     
     # Instruction
-    ins_type = search_variable(node.children[3].children[0].value, table)
+    ins_type = search_variable_type(node.children[3].children[0].value, table)
     if not ins_type in ['int', 'float']:
         logger.error('[!] Semantic error.')
         logger.info('[?] Can not use a "' + ins_type + '" in a "for" declaration.')
@@ -269,13 +419,21 @@ def validate_print(node: Node, scope: SymbolTable):
     comparing = False
     for i, child in enumerate(node.children):
         if child.type == 'id':
-            child_types[i] = search_variable(child.value, scope)
-        elif child.type in comparators:
+            child_types[i] = search_variable_type(child.value, scope)
+        elif child.type in comparators or child.type in logic_compar:
             child_types[i] = validate_compar_types(child, scope)
             comparing = True
+        elif child.type in operators:
+            if is_string_concat(child, scope):
+                validate_string(child, scope, 'Print Statement')
+            else:
+                validate_arithmetic(child, scope, 'Print Statement')
+            # else:
+            #     child_types[i] = validate_int(child, scope, 'Print Statement')
+
         else:
             child_types[i] = child.type
-
+    
     if comparing and (child_types[0] == 'string' or child_types[1] == 'string'):
         logger.error('[!] Semantic error.')
         logger.info('[?] Can not use "' + node.type + '" with string comparison.')
@@ -295,7 +453,8 @@ def test_input_file(file):
 if __name__ == '__main__':
     input = file_to_str('input/basic.txt')
     try:
-        print(analize_semantics(input)[1])
+        analize_semantics(input)
+        logger.success('Semantic is correct.')
     except SyntaxError or NameError:
         pass
     

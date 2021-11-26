@@ -43,8 +43,8 @@ class ParserTests(unittest.TestCase):
     def test_strings_declaration(self):
         print('\n--------STRINGS DECLARATION--------')
         self.assertEqual(plyparser.test_tokens('string a;'), 'block|a||')
-        self.assertRaises(SyntaxError, plyparser.test_tokens, 'string b = 3;')
-        self.assertRaises(SyntaxError, plyparser.test_tokens, 'string d = 0.0;')
+        self.assertEqual(plyparser.test_tokens('string b = 3;'), 'block|b|3|')
+        self.assertEqual(plyparser.test_tokens('string d = 0.0;'), 'block|d|0.0|')
         self.assertEqual(plyparser.test_tokens('string b = (3);'), 'block|b|3|')
         self.assertRaises(SyntaxError, plyparser.test_tokens, 'string c')
         self.assertRaises(LexError, plyparser.test_tokens, 'string $$$;')
@@ -131,10 +131,10 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('boolean a = ("true" == true);'), 'block|a|==|true|True|') #False
         self.assertEqual(plyparser.test_tokens('boolean a = ("" == true);'), 'block|a|==||True|') #False
         self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("true" == 123);') 
-        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = (123.0 != "123");')
-        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("true" > 123);') 
-        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = (123.0 < "123");')
-        self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = ("true" >= 123);') 
+        self.assertEqual(plyparser.test_tokens('boolean a = (123.0 != "123");'), 'block|a|!=|123.0|123|') #False
+        self.assertEqual(plyparser.test_tokens('boolean a = ("true" > 123);'), 'block|a|>|true|123|') #False 
+        self.assertEqual(plyparser.test_tokens('boolean a = (123.0 < "123");'), 'block|a|<|123.0|123|') #False
+        self.assertEqual(plyparser.test_tokens('boolean a = ("true" >= 123);'), 'block|a|>=|true|123|') #False
         self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = (123.0 and "123");')
         self.assertRaises(SyntaxError, plyparser.test_tokens, 'boolean a = \'(123.0 and "123")\';')
 
@@ -162,7 +162,7 @@ class ParserTests(unittest.TestCase):
         print('\n--------ARITHMETIC--------')
         self.assertEqual(plyparser.test_tokens('int a = 1 + 1;'), 'block|a|+|1|1|')
         self.assertEqual(plyparser.test_tokens('int a = 1.0 + 1.0;'), 'block|a|+|1.0|1.0|')
-        self.assertEqual(plyparser.test_tokens("int a = 10 - 10 - 10 - 10 - 10;"), 'block|a|-|10|-|10|-|10|-|10|10|')
+        self.assertEqual(plyparser.test_tokens("int a = 10 - 10 - 10 - 10 - 10;"), 'block|a|-|-|-|-|10|10|10|10|10|')
         self.assertEqual(plyparser.test_tokens("int a = 10 - -1;"), 'block|a|-|10|-1|')
         self.assertEqual(plyparser.test_tokens('int a = 1 / 2;'), 'block|a|/|1|2|')
         self.assertEqual(plyparser.test_tokens("int a = 1--1;"), 'block|a|-|1|-1|')
@@ -177,19 +177,20 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(plyparser.test_tokens('boolean a = (true == ((4 / 2) - (12 / 12)));'), 'block|a|==|True|-|/|4|2|/|12|12|') #True
         self.assertEqual(plyparser.test_tokens('boolean a = (true == ((2 / 2) - (12 / 12)));'), 'block|a|==|True|-|/|2|2|/|12|12|') #True
         self.assertEqual(plyparser.test_tokens('int a = ((40 / 2) - (12 / 12));'), 'block|a|-|/|40|2|/|12|12|') #19.0
-        self.assertEqual(plyparser.test_tokens('int a = (32 -(- 1 - 44 - -2 -10 * (2*2)) / 4);'), 'block|a|-|32|/|-|-1|-|44|-|-2|*|10|*|2|2|4|')
+        self.assertEqual(plyparser.test_tokens('int a = (32 -(- 1 - 44 - -2 -10 * (2*2)) / 4);'), 'block|a|-|32|/|-|-|-1|44|-|-2|*|10|*|2|2|4|')
 
 
     def test_string_concatenation(self):
         print('\n--------STRINGS CONCATENATION--------')
         self.assertEqual(plyparser.test_tokens('string a = "a" + "b";'), 'block|a|+|a|b|')
+        self.assertEqual(plyparser.test_tokens('a = (a) + "b";'), 'block|a|+|a|b|')
         self.assertEqual(plyparser.test_tokens("string a = 'a' + 'b';"), 'block|a|+|a|b|')
         self.assertEqual(plyparser.test_tokens("string asd = 'a' + 'b' +'c' + 'd';"), 'block|asd|+|+|+|a|b|c|d|')
         self.assertEqual(plyparser.test_tokens('string a = "" + "";'), 'block|a|+|||')
         self.assertEqual(plyparser.test_tokens("string a = '' + '';"), 'block|a|+|||')
         self.assertEqual(plyparser.test_tokens('string a = "asd" + "1";'), 'block|a|+|asd|1|')
         self.assertEqual(plyparser.test_tokens("string a = 'asd' + (1);"), 'block|a|+|asd|1|')
-        self.assertRaises(SyntaxError, plyparser.test_tokens, "string a = 'asd' + 1;")
+        self.assertEqual(plyparser.test_tokens("string a = 'asd' + 1;"), 'block|a|+|asd|1|')
         self.assertEqual(plyparser.test_tokens('string a = "" + (1);'), 'block|a|+||1|')
         self.assertEqual(plyparser.test_tokens('string a = ""+(1);'), 'block|a|+||1|')
         self.assertEqual(plyparser.test_tokens('string a = ""+(1+2);'), 'block|a|+||+|1|2|')
