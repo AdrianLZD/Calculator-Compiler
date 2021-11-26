@@ -1,5 +1,6 @@
 import plysemantics
 import sys
+import time
 from util.node import Node
 from plysemantics import var_declare, var_types, operators, flowctrls
 from util.symboltable import SymbolTable
@@ -35,7 +36,7 @@ def generate_code(file):
     abs_tree = semantics[0]
     sym_table = semantics[1]
     #print(abs_tree)
-    print(sym_table)
+    #print(sym_table)
     analize_tree(abs_tree, sym_table)
 
 
@@ -280,11 +281,7 @@ def conditional_block(node: Node, scope: SymbolTable, block_count: int, add_else
         if child.type == 'else':
             convert_node(child.children[0], scope.children[node.type + str(i + block_count)], 0)
         else:
-            print(node.type)
-            print(i)
-            print(block_count)
             convert_node(child.children[1], scope.children[node.type + str(i + block_count)], 0)
-            print("done")
 
     if not has_else and add_else_ref_to_code:
         add_to_code([blocks_ref[len(blocks_ref)-1]])
@@ -406,9 +403,16 @@ def add_to_code(values):
 if __name__ == '__main__':
     args = sys.argv[1:]
     
+    if len(args) < 1:
+        print("Usage: py code-gen-py [input_path]")
+        exit(0)
+        
+    start = time.time()
     generate_code(args[0])
+    print("Compiled in: " + str(time.time() - start))
+
     dirs = args[0].split('/')
     file_name = dirs[len(dirs)-1]
     with open('output/' + file_name, 'w') as f:
         f.write(code)
-    print(code)
+    #print(code)
