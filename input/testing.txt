@@ -1,6 +1,6 @@
 print("(1)" + (234 + 123 + 345 + 567) + "asd");
 print(1 + (2 + (3 + (4 + ((5) + "asd")))));
-print(1 or "false");
+print(1 or false);
 int a = 1 + 3;
 int estesi = 0;
 float b = 5 + 6;

@@ -361,6 +361,8 @@ def print_instruction(node: Node, scope: SymbolTable, block_count: int):
         elif child.type in comparators or child.type in logic_compar:
             var_print = boolean_operation(child, scope, block_count)
             add_to_code(['PRINT', var_print])
+        elif child.type == 'id':
+            add_to_code(['PRINT', child.value])
 
 
 def is_string_concat(node: Node, scope: SymbolTable):
@@ -406,7 +408,7 @@ if __name__ == '__main__':
     if len(args) < 1:
         print("Usage: py code-gen-py [input_path]")
         exit(0)
-        
+
     start = time.time()
     generate_code(args[0])
     print("Compiled in: " + str(time.time() - start))
@@ -415,4 +417,4 @@ if __name__ == '__main__':
     file_name = dirs[len(dirs)-1]
     with open('output/' + file_name, 'w') as f:
         f.write(code)
-    #print(code)
+    print(code)

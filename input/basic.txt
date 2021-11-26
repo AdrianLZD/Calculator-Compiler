@@ -1,6 +1,6 @@
 string a = "asd";
 a = a + 'hora';
-int multiplier = 1;
+int multiplier = 1.0;
 float weight = 0;
 int weightLimit = 100000000;
 

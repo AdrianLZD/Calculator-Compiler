@@ -1,0 +1,7 @@
+a = 0 
+b = 0 
+a = 4 
+b = 10 
+t0 = a + b 
+c = t0 
+PRINT c 
