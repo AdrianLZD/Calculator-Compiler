@@ -266,17 +266,19 @@ def block_while(node: Node, parent: SymbolTable):
 
 def validate_print(node: Node, scope: SymbolTable):
     child_types = [None, None]
+    comparing = False
     for i, child in enumerate(node.children):
         if child.type == 'id':
             child_types[i] = search_variable(child.value, scope)
         elif child.type in comparators:
             child_types[i] = validate_compar_types(child, scope)
+            comparing = True
         else:
             child_types[i] = child.type
 
-    if child_types[0] == 'string' or child_types[1] == 'string':
+    if comparing and (child_types[0] == 'string' or child_types[1] == 'string'):
         logger.error('[!] Semantic error.')
-        logger.info('[?] Can not use "' + node.type + '" with strings.')
+        logger.info('[?] Can not use "' + node.type + '" with string comparison.')
         raise NameError('Incompatible comparison.')
 
 

@@ -1,8 +1,13 @@
-float af = 1.0 + 1 - (4 / 2);
-int a = 1 + 3;
-string as = "asd" + (1) + (1.02312);
-boolean bb = (1 > (3 + 2.0));
+boolean ya = true and false or false;
 boolean ab = true and (1 > false) or 123123;
+string as = "asd" + (1 - 29 - 39 - 290 * 2);
+boolean bb = (true != ("porfa"));
+float af = (1 + 10 + 90 + (2 + (3 + (4 + ((5) + 2.0 + 4)))));
+print("(1)" + (234 + 123 + 345 + 567) + "asd");
+int a = 1 + 3;
+
+boolean varcheck = (a > af);
+
 boolean cb = True or 1 + 2.0;
 boolean db = 1 + 2.0 or False;
 boolean oc = (true == (false > 0));
@@ -38,3 +43,8 @@ for(i = 0; i< 20; i++){
     string fors = "and many other declarations";
 }
 
+
+
+print(1 + (2 + (3 + (4 + ((5) + "asd")))));
+
+print(1 > false);

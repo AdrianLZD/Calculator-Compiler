@@ -48,19 +48,27 @@ def convert_node(node: Node, scope: SymbolTable, block_count = 0):
             add_to_code([child.value,'=', convert_instruction(child.children[0], scope, block_count)])
         elif child.type == 'id':
             convert_id_declaration(child, scope, block_count)
-        elif child.type in flowctrls:
-            if child.type == 'if':
-                block_count = conditional_block(child, scope, block_count)
-            elif child.type == 'while':
-                block_count = while_instruction(child, scope, block_count)
-            elif child.type == 'for':
-                block_count = for_instruction(child, scope, block_count)
+        if child.type == 'if':
+            block_count = conditional_block(child, scope, block_count)
+        elif child.type == 'while':
+            block_count = while_instruction(child, scope, block_count)
+        elif child.type == 'for':
+            block_count = for_instruction(child, scope, block_count)
+        elif child.type == 'print':
+            print_instruction(child, scope, block_count)
+            
         
 
 
 def convert_instruction(node: Node, scope: SymbolTable, block_count: int):
     if node.type in var_types:
-        return node.value
+        if node.type == 'string':
+            quotations = '"'
+            if '"' in node.value:
+                quotations = "'"
+            return quotations + node.value + quotations
+        else:
+            return node.value
     elif node.type in operators:
         if node.parent.type in ['dstring', 'string']:
             return concat_strings(node, scope, block_count)
@@ -70,55 +78,97 @@ def convert_instruction(node: Node, scope: SymbolTable, block_count: int):
         return boolean_operation(node, scope, block_count)
 
 
-def arithmetic_operation(node: Node, scope: SymbolTable, block_count: int,  is_float_operation: bool = False):
+def arithmetic_operation(node: Node, scope: SymbolTable, block_count: int,  float_operation: bool = False):
     operate = [node.children[0].value, node.children[1].value]
-    if not is_float_operation:
-        for i in range(2):
+
+    # Helps to detect when integers should be casted to floats
+    for i in range(2):
+        if not float_operation:
             if node.children[i].type == 'float':
-                is_float_operation = True
+                float_operation = True
+            elif node.children[i].type in operators:
+                float_operation = is_float_operation(node.children[i])
 
     for i in range(2):
-        if is_float_operation and node.children[i].type == 'int':
+        if float_operation and node.children[i].type == 'int':
             var_num = next(var_id)
             add_to_code(['t' + str(var_num), '=', 'toFloat', node.children[i].value])
             operate[i] = 't' + str(var_num)
         if node.children[i].type in operators:
-            operate[i] = arithmetic_operation(node.children[i],scope, block_count, is_float_operation)
+            operate[i] = arithmetic_operation(node.children[i],scope, block_count, float_operation)
         
     var_num = next(var_id)
     add_to_code(['t' + str(var_num), '=', operate[0], node.value, operate[1]])
     return 't' + str(var_num)
 
 
-def concat_strings(node: Node, scope: SymbolTable, block_count: int):
+def concat_strings(node: Node, scope: SymbolTable, block_count: int, arith_childs = False):
     concat = [node.children[0].value, node.children[1].value]
+
+    # Helps to detect when an arithmetic operation is being concatenated
     for i in range(2):
-        if node.children[i].type in ['int', 'float']:
-            var_num = next(var_id)
-            add_to_code(['t' + str(var_num), '=', 'toString', node.children[i].value])
-            concat[i] = 't' + str(var_num)
-        elif node.children[i].type in operators:
-            concat[i] = concat_strings(node.children[i], scope, block_count)
+        if not arith_childs:
+            if concat[i] in operators:
+                arith_childs = not is_string_concat(node.children[i])
+
+    for i in range(2):
+        if node.children[i].type == 'string':
+            pass
+        elif not arith_childs:
+            if node.children[i].type in ['int', 'float']:
+                var_num = next(var_id)
+                add_to_code(['t' + str(var_num), '=', 'toString', node.children[i].value])
+                concat[i] = 't' + str(var_num)
+            elif node.children[i].type == 'string':
+                if '"' in node.children[i].value:
+                    concat[i] = "'" + node.children[i].value + "'"
+                else:
+                    concat[i] = '"' + node.children[i].value + '"'
+            elif node.children[i].type in operators:
+                concat[i] = concat_strings(node.children[i], scope, block_count, arith_childs)
+        else:
+            concat[i] = arithmetic_operation(node.children[i], scope, block_count)
+            add_to_code([concat[i], '=', 'toString', concat[i]])
         
     var_num = next(var_id)
     add_to_code(['t' + str(var_num), '=', concat[0], '+', concat[1]])
     return 't' + str(var_num)
 
 
-def boolean_operation(node: Node, scope: SymbolTable, block_count: int):
+def boolean_operation(node: Node, scope: SymbolTable, block_count: int, float_compare: bool = False):
     evaluate = [node.children[0].value, node.children[1].value]
+
+    # Helps to detect when integers should be casted to floats
     for i in range(2):
+        if not float_compare:
+            if evaluate[i] in operators:
+                float_compare = is_float_operation(node.children[i])
+            if node.children[i].type == 'float':
+                float_compare = True
+
+    for i in range(2):
+        # When comparing float, cast integers
+        if node.children[i].type == 'int' and float_compare:
+            var_num = next(var_id)
+            add_to_code(['t' + str(var_num), '=', 'toFloat', node.children[i].value])
+            evaluate[i] = 't' + str(var_num)
+
         # Make sure the casting to boolean is done if needed
         if node.children[i].type in ['int', 'float'] and node.type in logic_compar:
             var_num = next(var_id)
             add_to_code(['t' + str(var_num), '=', 'toBoolean', node.children[i].value])
             evaluate[i] = 't' + str(var_num)
 
-        # Make sure the casting to boolean is done if needed
+        # Make sure to cast strings if needed
         if node.children[i].type == 'string' and node.type in comparators:
             var_num = next(var_id)
-            add_to_code(['t' + str(var_num), '=', 'toBoolean', node.children[i].value])
-            evaluate[i] = 't' + str(var_num)
+            new_var = 't' + str(var_num)
+            quotations = '"'
+            if '"' in node.children[i].value:
+                quotations = "'"
+            add_to_code([new_var, '=', 'toBoolean', quotations + node.children[i].value + quotations])
+            add_to_code([new_var, '=', 'toInt', new_var])
+            evaluate[i] = new_var
 
         # Make sure the casting to int is done if needed
         if node.children[i].type == 'boolean' and node.type in comparators:
@@ -258,8 +308,45 @@ def for_instruction_condition(node: Node, scope: SymbolTable, block_count: int):
     add_to_code([condition_id, '=', condition])
     add_to_code([condition_id, 'IFGOTO', 'L' + str(block_num)])
 
-    
 
+def print_instruction(node: Node, scope: SymbolTable, block_count: int):
+    for child in node.children:
+        if child.type in var_types:
+            add_to_code(['PRINT', child.value])
+        elif child.type in operators:
+            if child.type == '+' and is_string_concat(child):
+                var_print = concat_strings(child, scope, block_count)
+            else:
+                var_print = arithmetic_operation(child, scope, block_count)
+            add_to_code(['PRINT', var_print])
+        elif child.type in comparators or child.type in logic_compar:
+            var_print = boolean_operation(child, scope, block_count)
+            add_to_code(['PRINT', var_print])
+
+
+
+def is_string_concat(node: Node):
+    is_concat = False
+    for child in node.children:
+        if is_concat == True:
+            return True
+        if child.type == 'string':
+            is_concat = True
+        elif child.type in operators:
+            is_concat = is_string_concat(child)
+    return is_concat
+
+
+def is_float_operation(node: Node):
+    is_float = False
+    for child in node.children:
+        if is_float == True:
+            return True
+        if child.type == 'float':
+            is_float = True
+        elif child.type in operators:
+            is_float = is_float_operation(child)
+    return is_float
 
 def add_to_code(values):
     global code
