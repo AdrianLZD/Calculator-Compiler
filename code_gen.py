@@ -1,4 +1,5 @@
 import plysemantics
+import sys
 from util.node import Node
 from plysemantics import var_declare, var_types, operators, flowctrls
 from util.symboltable import SymbolTable
@@ -403,6 +404,11 @@ def add_to_code(values):
 
 
 if __name__ == '__main__':
-    generate_code('input/basic.txt')
-
+    args = sys.argv[1:]
+    
+    generate_code(args[0])
+    dirs = args[0].split('/')
+    file_name = dirs[len(dirs)-1]
+    with open('output/' + file_name, 'w') as f:
+        f.write(code)
     print(code)
